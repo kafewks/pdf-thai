@@ -3,66 +3,161 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Feelgood PDF — รวม PDF ออนไลน์ง่าย ๆ ฟรี ปลอดภัย 100%</title>
+  <title>Feelgood — เครื่องมือจัดการ PDF ออนไลน์ ฟรี ปลอดภัย 100%</title>
   
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4752865307528984"
-     crossorigin="anonymous"></script>
-  
-  <meta name="description" content="รวมไฟล์ PDF ฟรีในเบราว์เซอร์ ใช้งานง่าย ไฟล์ไม่ถูกอัปโหลดขึ้นเซิร์ฟเวอร์ ปลอดภัย 100%">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4752865307528984" crossorigin="anonymous"></script>
+  <meta name="description" content="รวม แยก หมุน ลบหน้า PDF ฟรีในเบราว์เซอร์ ใช้งานง่าย ไม่ต้องอัปโหลดขึ้นเซิร์ฟเวอร์ ปลอดภัย 100%">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header class="top">
-  <div class="brand">😊 <span>FeelGood</span></div>
-  <div class="badge">🔒 ประมวลผลในเครื่อง (Offline Ready)</div>
-</header>
+  <!-- 1. Header Bar & Navigation -->
+  <header class="top">
+    <a href="#" class="brand">😊 <span>FeelGood</span></a>
+    <nav class="nav-menu">
+      <a href="#" class="nav-link active" data-tool="hub">หน้าแรก</a>
+      <a href="#merge" class="nav-link" data-tool="merge">รวม PDF</a>
+      <a href="#rotate" class="nav-link" data-tool="rotate">หมุน/ลบหน้า</a>
+      <a href="#split" class="nav-link" data-tool="split">แยก PDF</a>
+    </nav>
+    <div class="badge">🔒 ประมวลผลในเครื่อง</div>
+  </header>
 
-<main>
-  <section class="hero">
-    <h1>รวม PDF ง่าย ๆ ในไม่กี่คลิก</h1>
-    <p>เลือกไฟล์ PDF แล้วลากเรียงลำดับ จากนั้นกดรวมได้ทันที<br>ไฟล์จะถูกประมวลผลในเบราว์เซอร์ของคุณ ปลอดภัย ไม่ผ่านเซิร์ฟเวอร์</p>
-  </section>
+  <main>
+    <!-- ========================================== -->
+    <!-- VIEW 0: หน้า Hub รวมเครื่องมือ (Homepage) -->
+    <!-- ========================================== -->
+    <section id="view-hub" class="view-section">
+      <div class="hero">
+        <h1>จัดการไฟล์ PDF ได้ง่าย ๆ ในไม่กี่คลิก</h1>
+        <p>เครื่องมือจัดการ PDF ครบครัน ทำงานรวดเร็ว ปลอดภัย 100%<br>ไฟล์ทั้งหมดประมวลผลภายในเบราว์เซอร์ของคุณ ไม่มีการส่งออกภายนอก</p>
+      </div>
 
-  <section class="card">
-    <input id="fileInput" type="file" accept="application/pdf,.pdf" multiple hidden>
-    
-    <!-- เปลี่ยนปุ่มเลือกไฟล์เป็น Visual element เพื่อไม่ให้ trigger click ซ้ำซ้อนกับ Label -->
-    <label for="fileInput" class="drop" id="dropArea">
-      <div class="icon">📄</div>
-      <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
-      <span>หรือ</span>
-      <span class="btn-choose">เลือกไฟล์ PDF</span>
-      <small>รองรับหลายไฟล์ • ไม่จำเป็นต้องสมัครสมาชิก</small>
-    </label>
+      <div class="tools-grid">
+        <a href="#merge" class="tool-card">
+          <div class="tool-icon">📑</div>
+          <h3>รวม PDF</h3>
+          <p>รวมไฟล์ PDF หลายไฟล์เข้าด้วยกันเป็นไฟล์เดียว พร้อมจัดเรียงลำดับได้</p>
+          <span class="tool-btn">ใช้งาน</span>
+        </a>
 
-    <!-- รายการไฟล์ที่ถูกเลือก -->
-    <div id="fileList" class="list hidden"></div>
+        <a href="#rotate" class="tool-card">
+          <div class="tool-icon">🔄</div>
+          <h3>หมุน / ลบหน้า PDF</h3>
+          <p>หมุนปรับทิศทางหน้า หรือลบหน้าที่ไม่ต้องการออกจากเอกสาร</p>
+          <span class="tool-btn">ใช้งาน</span>
+        </a>
 
-    <div class="actions">
-      <button id="clearBtn" class="secondary hidden">ล้างทั้งหมด</button>
-      <button id="mergeBtn" class="primary" disabled>รวม PDF</button>
-    </div>
-    
-    <div id="status" class="status"></div>
-  </section>
+        <a href="#split" class="tool-card">
+          <div class="tool-icon">✂️</div>
+          <h3>แยก PDF</h3>
+          <p>แยกหน้าเอกสาร PDF หรือเลือกรวมเฉพาะช่วงหน้าที่ต้องการ</p>
+          <span class="tool-btn">ใช้งาน</span>
+        </a>
+      </div>
+    </section>
 
-  <section class="privacy">
-    <h2>🔒 ไฟล์ของคุณอยู่กับคุณเสมอ</h2>
-    <p>Feelgood ใช้ JavaScript และ pdf-lib ประมวลผล PDF ภายใน RAM บนเครื่องของคุณเอง โดยไม่มีการส่งไฟล์ไปยังเซิร์ฟเวอร์ภายนอกแม้แต่ไบต์เดียว</p>
-  </section>
+    <!-- ========================================== -->
+    <!-- VIEW 1: เครื่องมือ รวม PDF (Merge) -->
+    <!-- ========================================== -->
+    <section id="view-merge" class="view-section hidden">
+      <div class="hero">
+        <h1>รวม PDF ง่าย ๆ ในไม่กี่คลิก</h1>
+        <p>เลือกไฟล์ PDF แล้วลากเรียงลำดับ จากนั้นกดรวมได้ทันที</p>
+      </div>
 
-  <section class="features">
-    <div><b>1</b><h3>เลือกไฟล์</h3><p>เลือก PDF ได้หลายไฟล์พร้อมกันจากอุปกรณ์ของคุณ</p></div>
-    <div><b>2</b><h3>จัดลำดับ</h3><p>ลากสลับรายการเพื่อเปลี่ยนลำดับเอกสารก่อนรวม</p></div>
-    <div><b>3</b><h3>ดาวน์โหลด</h3><p>รวมไฟล์เสร็จแล้วดาวน์โหลดลงเครื่องได้ทันที</p></div>
-  </section>
-</main>
+      <div class="card">
+        <input id="mergeFileInput" type="file" accept="application/pdf,.pdf" multiple hidden>
+        <label for="mergeFileInput" class="drop" id="mergeDropArea">
+          <div class="icon">📄</div>
+          <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
+          <span>หรือ</span>
+          <span class="btn-choose">เลือกไฟล์ PDF</span>
+          <small>รองรับหลายไฟล์ • ไม่จำเป็นต้องสมัครสมาชิก</small>
+        </label>
 
-<footer>Feelgood • จัดการง่าย สบายใจ ไม่ต้องพึ่งเซิร์ฟเวอร์</footer>
+        <div id="mergeFileList" class="list hidden"></div>
 
-<!-- โหลด pdf-lib CDN -->
-<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="app.js"></script>
+        <div class="actions">
+          <button id="mergeClearBtn" class="secondary hidden">ล้างทั้งหมด</button>
+          <button id="mergeSubmitBtn" class="primary" disabled>รวม PDF</button>
+        </div>
+        <div id="mergeStatus" class="status"></div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: เครื่องมือ หมุน / ลบหน้า PDF (Rotate) -->
+    <!-- ========================================== -->
+    <section id="view-rotate" class="view-section hidden">
+      <div class="hero">
+        <h1>หมุน หรือ ลบหน้า PDF</h1>
+        <p>เลือกไฟล์ PDF เพื่อปรับทิศทาง หรือลบหน้าที่ไม่ต้องการออก</p>
+      </div>
+
+      <div class="card">
+        <input id="rotateFileInput" type="file" accept="application/pdf,.pdf" hidden>
+        <label for="rotateFileInput" class="drop" id="rotateDropArea">
+          <div class="icon">🔄</div>
+          <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
+          <span>หรือ</span>
+          <span class="btn-choose">เลือกไฟล์ PDF (1 ไฟล์)</span>
+        </label>
+
+        <!-- โซนควบคุมการหมุน/ลบหน้า (จะแสดงผลเมื่อเลือกไฟล์แล้ว) -->
+        <div id="rotateWorkspace" class="workspace hidden">
+          <div class="workspace-toolbar">
+            <div class="file-info">
+              <span id="rotateFileName" class="fname-title">filename.pdf</span>
+              <span id="rotatePageCount" class="page-count-badge">0 หน้า</span>
+            </div>
+            <div class="global-actions">
+              <button type="button" id="rotateAllCcwBtn" class="secondary-sm">↺ หมุนซ้ายทั้งหมด</button>
+              <button type="button" id="rotateAllCwBtn" class="secondary-sm">↻ หมุนขวาทั้งหมด</button>
+              <button type="button" id="rotateResetBtn" class="secondary-sm">คืนค่าเดิม</button>
+            </div>
+          </div>
+
+          <!-- ตารางแสดง Grid รายการหน้า PDF -->
+          <div id="rotatePageGrid" class="page-grid"></div>
+
+          <div class="actions">
+            <button id="rotateCancelBtn" class="secondary">เลือกไฟล์ใหม่</button>
+            <button id="rotateSaveBtn" class="primary">บันทึก PDF ใหม่</button>
+          </div>
+        </div>
+
+        <div id="rotateStatus" class="status"></div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: เครื่องมือ แยก PDF (Split) [เตรียมไว้สำหรับอนาคต] -->
+    <!-- ========================================== -->
+    <section id="view-split" class="view-section hidden">
+      <div class="hero">
+        <h1>แยก PDF (กำลังพัฒนา)</h1>
+        <p>เตรียมพบกับฟังก์ชันการแยกหน้า PDF เร็ว ๆ นี้</p>
+      </div>
+    </section>
+
+    <!-- Section สาระความปลอดภัย (แสดงทุกหน้า) -->
+    <section class="privacy">
+      <h2>🔒 ไฟล์ของคุณอยู่กับคุณเสมอ</h2>
+      <p>Feelgood ใช้ JavaScript ประมวลผล PDF ภายใน RAM บนเครื่องของคุณเอง โดยไม่มีการส่งไฟล์ไปยังเซิร์ฟเวอร์ภายนอกแม้แต่ไบต์เดียว</p>
+    </section>
+  </main>
+
+  <footer>Feelgood • จัดการง่าย สบายใจ ไม่ต้องพึ่งเซิร์ฟเวอร์</footer>
+
+  <!-- External Libraries -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <!-- PDF.js สำหรับ Render ภาพ Preview หน้าเอกสาร -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- App Scripts -->
+  <script src="tools/merge.js"></script>
+  <script src="tools/rotate.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
