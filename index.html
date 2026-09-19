@@ -2,15 +2,22 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Feelgood PDF — รวม PDF ออนไลน์ง่าย ๆ ฟรี</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Feelgood PDF — รวม PDF ออนไลน์ง่าย ๆ ฟรี ปลอดภัย 100%</title>
+  
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4752865307528984"
      crossorigin="anonymous"></script>
+  
   <meta name="description" content="รวมไฟล์ PDF ฟรีในเบราว์เซอร์ ใช้งานง่าย ไฟล์ไม่ถูกอัปโหลดขึ้นเซิร์ฟเวอร์ ปลอดภัย 100%">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="top"><div class="brand">😊 <span>FeelGood</span></div><div class="badge">🔒 ประมวลผลในเครื่อง</div></header>
+
+<header class="top">
+  <div class="brand">😊 <span>FeelGood</span></div>
+  <div class="badge">🔒 ประมวลผลในเครื่อง (Offline Ready)</div>
+</header>
+
 <main>
   <section class="hero">
     <h1>รวม PDF ง่าย ๆ ในไม่กี่คลิก</h1>
@@ -19,35 +26,42 @@
 
   <section class="card">
     <input id="fileInput" type="file" accept="application/pdf,.pdf" multiple hidden>
-    <label for="fileInput" class="drop" id="drop">
+    
+    <!-- เปลี่ยนปุ่มเลือกไฟล์เป็น Visual element เพื่อไม่ให้ trigger click ซ้ำซ้อนกับ Label -->
+    <label for="fileInput" class="drop" id="dropArea">
       <div class="icon">📄</div>
       <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
       <span>หรือ</span>
-      <button type="button" class="choose" id="chooseBtn">เลือกไฟล์ PDF</button>
+      <span class="btn-choose">เลือกไฟล์ PDF</span>
       <small>รองรับหลายไฟล์ • ไม่จำเป็นต้องสมัครสมาชิก</small>
     </label>
 
-    <div id="list" class="list hidden"></div>
+    <!-- รายการไฟล์ที่ถูกเลือก -->
+    <div id="fileList" class="list hidden"></div>
 
     <div class="actions">
       <button id="clearBtn" class="secondary hidden">ล้างทั้งหมด</button>
       <button id="mergeBtn" class="primary" disabled>รวม PDF</button>
     </div>
+    
     <div id="status" class="status"></div>
   </section>
 
   <section class="privacy">
-    <h2>🔒 ไฟล์ของคุณอยู่กับคุณ</h2>
-    <p>Feelgood ใช้ JavaScript และ pdf-lib ประมวลผล PDF ภายในเบราว์เซอร์ ไฟล์ต้นฉบับไม่ได้ถูกส่งไปยังเซิร์ฟเวอร์ของเว็บ</p>
+    <h2>🔒 ไฟล์ของคุณอยู่กับคุณเสมอ</h2>
+    <p>Feelgood ใช้ JavaScript และ pdf-lib ประมวลผล PDF ภายใน RAM บนเครื่องของคุณเอง โดยไม่มีการส่งไฟล์ไปยังเซิร์ฟเวอร์ภายนอกแม้แต่ไบต์เดียว</p>
   </section>
 
   <section class="features">
-    <div><b>1</b><h3>เลือกไฟล์</h3><p>เลือก PDF ได้หลายไฟล์พร้อมกัน</p></div>
-    <div><b>2</b><h3>จัดลำดับ</h3><p>ลากรายการเพื่อเปลี่ยนลำดับ</p></div>
-    <div><b>3</b><h3>ดาวน์โหลด</h3><p>รวมเสร็จแล้วดาวน์โหลดทันที</p></div>
+    <div><b>1</b><h3>เลือกไฟล์</h3><p>เลือก PDF ได้หลายไฟล์พร้อมกันจากอุปกรณ์ของคุณ</p></div>
+    <div><b>2</b><h3>จัดลำดับ</h3><p>ลากสลับรายการเพื่อเปลี่ยนลำดับเอกสารก่อนรวม</p></div>
+    <div><b>3</b><h3>ดาวน์โหลด</h3><p>รวมไฟล์เสร็จแล้วดาวน์โหลดลงเครื่องได้ทันที</p></div>
   </section>
 </main>
-<footer>Feelgood • จัดการง่าย สบายใจ</footer>
+
+<footer>Feelgood • จัดการง่าย สบายใจ ไม่ต้องพึ่งเซิร์ฟเวอร์</footer>
+
+<!-- โหลด pdf-lib CDN -->
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="app.js"></script>
 </body>

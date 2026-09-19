@@ -1,1 +1,332 @@
-*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;background:#f5f7fb;color:#172033}.top{height:64px;background:#fff;border-bottom:1px solid #e7eaf0;display:flex;align-items:center;justify-content:space-between;padding:0 max(20px,calc((100% - 980px)/2));position:sticky;top:0;z-index:5}.brand{font-size:22px;font-weight:800}.brand span{margin-left:5px}.badge{font-size:13px;color:#26734d;background:#edf9f1;padding:8px 12px;border-radius:99px}.hero{text-align:center;padding:54px 20px 28px}.hero h1{font-size:clamp(30px,6vw,48px);margin:0 0 12px;letter-spacing:-1px}.hero p{color:#687386;line-height:1.7;margin:0}.card{background:#fff;max-width:900px;margin:0 auto;padding:28px;border-radius:20px;box-shadow:0 10px 35px #1b2a3d0d;border:1px solid #e9edf3}.drop{border:2px dashed #cbd3df;border-radius:16px;min-height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;cursor:pointer;transition:.2s}.drop.over{border-color:#356ae6;background:#f4f7ff}.icon{font-size:46px}.drop strong{font-size:20px}.drop span,.drop small{color:#7a8494}.choose,.primary,.secondary{border:0;border-radius:10px;padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer}.choose{background:#356ae6;color:#fff}.list{margin-top:20px;display:flex;flex-direction:column;gap:9px}.item{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid #e2e7ef;border-radius:11px;background:#fafbfd}.handle{cursor:grab;color:#8993a3;font-size:20px}.fname{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.size{font-size:12px;color:#8791a0}.remove{border:0;background:transparent;color:#c54b4b;font-size:20px;cursor:pointer}.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.primary{background:#172033;color:#fff;min-width:130px}.primary:disabled{opacity:.4;cursor:not-allowed}.secondary{background:#eef1f5;color:#3f4856}.status{text-align:center;min-height:25px;margin-top:12px;color:#5f6b7b;font-size:14px}.privacy{max-width:900px;margin:28px auto;text-align:center;background:#eef7ff;padding:25px;border-radius:16px}.privacy h2{margin:0 0 8px;font-size:20px}.privacy p{margin:0;color:#657287;line-height:1.6}.features{max-width:900px;margin:28px auto 50px;display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.features div{background:#fff;padding:22px;border-radius:15px;border:1px solid #e9edf3}.features b{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;background:#eaf0ff;color:#356ae6}.features h3{margin:12px 0 5px}.features p{margin:0;color:#758093;font-size:14px}footer{text-align:center;color:#8a94a3;font-size:13px;padding:25px}@media(max-width:650px){.top{padding:0 14px}.badge{font-size:11px}.card{margin:0 12px;padding:15px}.hero{padding-top:35px}.features{grid-template-columns:1fr;margin:20px 12px 35px}.drop{min-height:230px}.size{display:none}}
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif;
+  background: #f5f7fb;
+  color: #172033;
+}
+
+.top {
+  height: 64px;
+  background: #fff;
+  border-bottom: 1px solid #e7eaf0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 max(20px, calc((100% - 980px) / 2));
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.brand span {
+  margin-left: 5px;
+}
+
+.badge {
+  font-size: 13px;
+  color: #26734d;
+  background: #edf9f1;
+  padding: 8px 12px;
+  border-radius: 99px;
+}
+
+.hero {
+  text-align: center;
+  padding: 54px 20px 28px;
+}
+
+.hero h1 {
+  font-size: clamp(30px, 6vw, 48px);
+  margin: 0 0 12px;
+  letter-spacing: -1px;
+}
+
+.hero p {
+  color: #687386;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.card {
+  background: #fff;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 20px;
+  box-shadow: 0 10px 35px #1b2a3d0d;
+  border: 1px solid #e9edf3;
+}
+
+/* Drop Zone */
+.drop {
+  border: 2px dashed #cbd3df;
+  border-radius: 16px;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ป้องกันไอคอน/ข้อความกวน Event การ Drag Over */
+.drop * {
+  pointer-events: none;
+}
+
+.drop.over {
+  border-color: #356ae6;
+  background: #f4f7ff;
+  transform: scale(0.99);
+}
+
+.icon {
+  font-size: 46px;
+}
+
+.drop strong {
+  font-size: 20px;
+}
+
+.drop span,
+.drop small {
+  color: #7a8494;
+}
+
+/* Buttons & Elements */
+.choose,
+.btn-choose,
+.primary,
+.secondary {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-block;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.choose,
+.btn-choose {
+  background: #356ae6;
+  color: #fff;
+}
+
+.choose:hover,
+.btn-choose:hover {
+  background: #2855c4;
+}
+
+/* List Items & Drag Reorder Feedback */
+.list {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #e2e7ef;
+  border-radius: 11px;
+  background: #fafbfd;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+
+/* Visual indicator ขณะลากแถวรายการ */
+.item.dragging {
+  opacity: 0.4;
+  background: #edf2f7;
+}
+
+.item.drag-over {
+  border-top: 2px solid #356ae6;
+  background: #f0f5ff;
+}
+
+.handle {
+  cursor: grab;
+  color: #8993a3;
+  font-size: 20px;
+  user-select: none;
+}
+
+.fname {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.size {
+  font-size: 12px;
+  color: #8791a0;
+}
+
+.remove {
+  border: 0;
+  background: transparent;
+  color: #c54b4b;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.remove:hover {
+  color: #e53e3e;
+}
+
+/* Actions & Footer Controls */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.primary {
+  background: #172033;
+  color: #fff;
+  min-width: 130px;
+}
+
+.primary:hover:not(:disabled) {
+  background: #0f1624;
+}
+
+.primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.secondary {
+  background: #eef1f5;
+  color: #3f4856;
+}
+
+.secondary:hover {
+  background: #e2e7f0;
+}
+
+.status {
+  text-align: center;
+  min-height: 25px;
+  margin-top: 12px;
+  color: #5f6b7b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Section Privacy & Features */
+.privacy {
+  max-width: 900px;
+  margin: 28px auto;
+  text-align: center;
+  background: #eef7ff;
+  padding: 25px;
+  border-radius: 16px;
+}
+
+.privacy h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.privacy p {
+  margin: 0;
+  color: #657287;
+  line-height: 1.6;
+}
+
+.features {
+  max-width: 900px;
+  margin: 28px auto 50px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.features div {
+  background: #fff;
+  padding: 22px;
+  border-radius: 15px;
+  border: 1px solid #e9edf3;
+}
+
+.features b {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #eaf0ff;
+  color: #356ae6;
+}
+
+.features h3 {
+  margin: 12px 0 5px;
+}
+
+.features p {
+  margin: 0;
+  color: #758093;
+  font-size: 14px;
+}
+
+footer {
+  text-align: center;
+  color: #8a94a3;
+  font-size: 13px;
+  padding: 25px;
+}
+
+/* Utility Helper */
+.hidden {
+  display: none !important;
+}
+
+/* Responsive Styles */
+@media (max-width: 650px) {
+  .top {
+    padding: 0 14px;
+  }
+  .badge {
+    font-size: 11px;
+  }
+  .card {
+    margin: 0 12px;
+    padding: 15px;
+  }
+  .hero {
+    padding-top: 35px;
+  }
+  .features {
+    grid-template-columns: 1fr;
+    margin: 20px 12px 35px;
+  }
+  .drop {
+    min-height: 230px;
+  }
+  .size {
+    display: none;
+  }
+}
