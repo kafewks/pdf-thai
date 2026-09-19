@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PDFไทย — รวม PDF ออนไลน์</title>
+  <meta name="description" content="รวมไฟล์ PDF ฟรีในเบราว์เซอร์ ไฟล์ไม่ถูกอัปโหลดขึ้นเซิร์ฟเวอร์">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top"><div class="brand">🇹🇭 <span>PDFไทย</span></div><div class="badge">🔒 ประมวลผลในเครื่อง</div></header>
+<main>
+  <section class="hero">
+    <h1>รวม PDF ง่าย ๆ ในไม่กี่คลิก</h1>
+    <p>เลือกไฟล์ PDF แล้วลากเรียงลำดับ จากนั้นกดรวมได้ทันที<br>ไฟล์จะถูกประมวลผลในเบราว์เซอร์ของคุณ</p>
+  </section>
+
+  <section class="card">
+    <input id="fileInput" type="file" accept="application/pdf,.pdf" multiple hidden>
+    <label for="fileInput" class="drop" id="drop">
+      <div class="icon">📄</div>
+      <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
+      <span>หรือ</span>
+      <button type="button" class="choose" id="chooseBtn">เลือกไฟล์ PDF</button>
+      <small>รองรับหลายไฟล์ • ไม่จำเป็นต้องสมัครสมาชิก</small>
+    </label>
+
+    <div id="list" class="list hidden"></div>
+
+    <div class="actions">
+      <button id="clearBtn" class="secondary hidden">ล้างทั้งหมด</button>
+      <button id="mergeBtn" class="primary" disabled>รวม PDF</button>
+    </div>
+    <div id="status" class="status"></div>
+  </section>
+
+  <section class="privacy">
+    <h2>🔒 ไฟล์ของคุณอยู่กับคุณ</h2>
+    <p>เวอร์ชันนี้ใช้ JavaScript และ pdf-lib ประมวลผล PDF ภายในเบราว์เซอร์ ไฟล์ต้นฉบับไม่ได้ถูกส่งไปยังเซิร์ฟเวอร์ของเว็บ</p>
+  </section>
+
+  <section class="features">
+    <div><b>1</b><h3>เลือกไฟล์</h3><p>เลือก PDF ได้หลายไฟล์พร้อมกัน</p></div>
+    <div><b>2</b><h3>จัดลำดับ</h3><p>ลากรายการเพื่อเปลี่ยนลำดับ</p></div>
+    <div><b>3</b><h3>ดาวน์โหลด</h3><p>รวมเสร็จแล้วดาวน์โหลดทันที</p></div>
+  </section>
+</main>
+<footer>PDFไทย • เครื่องมือ PDF สำหรับคนไทย</footer>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
