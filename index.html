@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Feelgood — เครื่องมือจัดการ PDF ออนไลน์ ฟรี ปลอดภัย 100%</title>
   
+  <!-- Google AdSense Script -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4752865307528984" crossorigin="anonymous"></script>
+  
   <meta name="description" content="รวม แยก หมุน ลบหน้า PDF ฟรีในเบราว์เซอร์ ใช้งานง่าย ไม่ต้องอัปโหลดขึ้นเซิร์ฟเวอร์ ปลอดภัย 100%">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -24,6 +26,12 @@
   </header>
 
   <main>
+    <!-- Ad Banner Top (แสดงใต้ Header) -->
+    <div class="ad-container ad-top">
+      <!-- วางโค้ด <ins class="adsbygoogle"> จาก Google AdSense ที่นี่ -->
+      <small style="color:#999; display:block; text-align:center;">โฆษณา</small>
+    </div>
+
     <!-- ========================================== -->
     <!-- VIEW 0: หน้า Hub รวมเครื่องมือ (Homepage) -->
     <!-- ========================================== -->
@@ -104,7 +112,7 @@
           <span class="btn-choose">เลือกไฟล์ PDF (1 ไฟล์)</span>
         </label>
 
-        <!-- โซนควบคุมการหมุน/ลบหน้า (จะแสดงผลเมื่อเลือกไฟล์แล้ว) -->
+        <!-- โซนควบคุมการหมุน/ลบหน้า -->
         <div id="rotateWorkspace" class="workspace hidden">
           <div class="workspace-toolbar">
             <div class="file-info">
@@ -132,7 +140,7 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- VIEW 3: เครื่องมือ แยก PDF (Split) [เตรียมไว้สำหรับอนาคต] -->
+    <!-- VIEW 3: เครื่องมือ แยก PDF (Split) -->
     <!-- ========================================== -->
     <section id="view-split" class="view-section hidden">
       <div class="hero">
@@ -141,18 +149,33 @@
       </div>
     </section>
 
-    <!-- Section สาระความปลอดภัย (แสดงทุกหน้า) -->
+    <!-- Ad Banner Bottom (แสดงก่อน Section ความปลอดภัย) -->
+    <div class="ad-container ad-bottom">
+      <!-- วางโค้ด <ins class="adsbygoogle"> จาก Google AdSense ที่นี่ -->
+      <small style="color:#999; display:block; text-align:center;">โฆษณา</small>
+    </div>
+
+    <!-- Section สาระความปลอดภัย -->
     <section class="privacy">
       <h2>🔒 ไฟล์ของคุณอยู่กับคุณเสมอ</h2>
       <p>Feelgood ใช้ JavaScript ประมวลผล PDF ภายใน RAM บนเครื่องของคุณเอง โดยไม่มีการส่งไฟล์ไปยังเซิร์ฟเวอร์ภายนอกแม้แต่ไบต์เดียว</p>
     </section>
   </main>
 
-  <footer>Feelgood • จัดการง่าย สบายใจ ไม่ต้องพึ่งเซิร์ฟเวอร์</footer>
+  <!-- Footer พร้อม Link นโยบาย (จำเป็นมากสำหรับ Google AdSense) -->
+  <footer>
+    <div class="footer-content">
+      <p>Feelgood • จัดการง่าย สบายใจ ไม่ต้องพึ่งเซิร์ฟเวอร์</p>
+      <div class="footer-links">
+        <a href="privacy.html">นโยบายความเป็นส่วนตัว (Privacy Policy)</a> | 
+        <a href="terms.html">ข้อกำหนดการใช้งาน (Terms of Service)</a> | 
+        <a href="contact.html">ติดต่อเรา</a>
+      </div>
+    </div>
+  </footer>
 
   <!-- External Libraries -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <!-- PDF.js สำหรับ Render ภาพ Preview หน้าเอกสาร -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <!-- App Scripts -->

@@ -36,7 +36,7 @@
       currentFile = file;
       drop.classList.add("hidden");
       workspace.classList.remove("hidden");
-      pageGrid.innerHTML = "กำลังโหลดภาพตัวอย่าง...";
+      pageGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px; color:#6b7280;">กำลังโหลดภาพตัวอย่าง...</div>';
       showStatus(status, "");
 
       document.getElementById("rotateFileName").textContent = file.name;
@@ -57,12 +57,14 @@
           pageCard.dataset.pageIndex = i - 1;
 
           pageCard.innerHTML = `
-            <canvas id="pdf-canvas-${i}"></canvas>
+            <div class="canvas-wrapper" style="width:100%; display:flex; justify-content:center; align-items:center; overflow:hidden; padding:5px;">
+              <canvas id="pdf-canvas-${i}"></canvas>
+            </div>
             <div class="page-num">หน้า ${i}</div>
             <div class="page-card-controls">
-              <button class="btn-icon" title="หมุนซ้าย" data-act="ccw">↺</button>
-              <button class="btn-icon" title="หมุนขวา" data-act="cw">↻</button>
-              <button class="btn-icon delete-btn" title="ลบหน้านี้" data-act="del">🗑️</button>
+              <button type="button" class="btn-icon" title="หมุนซ้าย" data-act="ccw">↺</button>
+              <button type="button" class="btn-icon" title="หมุนขวา" data-act="cw">↻</button>
+              <button type="button" class="btn-icon delete-btn" title="ลบหน้านี้" data-act="del">🗑️</button>
             </div>
           `;
 
@@ -84,6 +86,7 @@
           await page.render({ canvasContext: context, viewport }).promise;
         }
       } catch (err) {
+        console.error(err);
         showStatus(status, `ไม่สามารถอ่านไฟล์ได้: ${err.message}`, true);
       }
     }
@@ -138,7 +141,7 @@
 
       const validPages = pageStates.filter(s => !s.deleted);
       if (validPages.length === 0) {
-        showStatus(status, "ไม่สามารถบันทึกได้ เนื่องจากคุณลบออกทุกหน้า", true);
+        showStatus(status, "ไม่สามารถบันทึกได้ เนื่องจากคุณเลือก ลบ ออกทุกหน้า", true);
         return;
       }
 
@@ -155,7 +158,7 @@
 
           const [copiedPage] = await newPdf.copyPages(srcPdf, [i]);
           
-          // กำหนดมุมหมุนเพิ่มเติม
+          // คำนวณและตั้งค่าการหมุน
           const currentRotation = copiedPage.getRotation().angle;
           copiedPage.setRotation(PDFLib.degrees(currentRotation + pageStates[i].rotation));
           
@@ -164,13 +167,21 @@
 
         const newBytes = await newPdf.save();
         const blob = new Blob([newBytes], { type: "application/pdf" });
+        
+        const downloadUrl = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
+        a.href = downloadUrl;
         a.download = `Feelgood_Rotated_${dateStamp()}.pdf`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
+
+        // คืนค่า Memory
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 10000);
 
         showStatus(status, "บันทึกไฟล์สำเร็จเรียบร้อย! ✓", false, true);
       } catch (err) {
+        console.error(err);
         showStatus(status, `เกิดข้อผิดพลาด: ${err.message}`, true);
       } finally {
         saveBtn.disabled = false;
