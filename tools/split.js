@@ -15,33 +15,38 @@
 
     if (!input) return;
 
-    // ผูก Event แค่ครั้งเดียว
+    // ผูก Event บายดิ่งครั้งเดียวเพื่อป้องกันปัญหา Memory Leak หรือการทำงานซ้ำ
     if (!input.dataset.bound) {
       input.dataset.bound = "true";
 
-      // 1. คลิกที่ Drop Zone เพื่อเปิดตัวเลือกไฟล์
+      // 1. กดที่กล่อง Drop Zone เพื่อเปิดตัวเลือกไฟล์
       drop.addEventListener("click", () => input.click());
 
-      // 2. เลือกไฟล์ผ่าน File Input
+      // 2. เมื่อเลือกไฟล์ผ่าน File Dialog
       input.addEventListener("change", (e) => {
         if (e.target.files && e.target.files[0]) {
           loadPdf(e.target.files[0]);
         }
       });
 
-      // 3. รองรับ Drag & Drop
+      // 3. ป้องกัน Default Event และจัดการ Drag Over / Drop
       drop.addEventListener("dragover", (e) => {
         e.preventDefault();
-        drop.classList.add("dragover");
+        drop.style.borderColor = "#356ae6";
+        drop.style.background = "#dbeafe";
       });
 
-      drop.addEventListener("dragleave", () => {
-        drop.classList.remove("dragover");
+      drop.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        drop.style.borderColor = "#93c5fd";
+        drop.style.background = "#eff6ff";
       });
 
       drop.addEventListener("drop", (e) => {
         e.preventDefault();
-        drop.classList.remove("dragover");
+        drop.style.borderColor = "#93c5fd";
+        drop.style.background = "#eff6ff";
+
         const f = e.dataTransfer.files[0];
         if (f && (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"))) {
           loadPdf(f);
@@ -50,7 +55,7 @@
         }
       });
 
-      // 4. สลับโหมดการแยกหน้า
+      // 4. สลับโหมดการแยกหน้า (Range / All)
       modeRadios.forEach((r) => {
         r.addEventListener("change", (e) => {
           if (e.target.value === "all") {
@@ -65,6 +70,7 @@
       submitBtn.onclick = executeSplit;
     }
 
+    // ฟังก์ชันอ่านไฟล์ PDF ด้วย PDF-Lib
     async function loadPdf(file) {
       currentFile = file;
       drop.classList.add("hidden");
@@ -74,7 +80,6 @@
 
       try {
         const bytes = await file.arrayBuffer();
-        // โหลด PDF ผ่าน PDFLib
         const pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
         totalPagesCount = pdfDoc.getPageCount();
 
@@ -85,6 +90,7 @@
       }
     }
 
+    // ฟังก์ชันคำนวณช่วงหน้า เช่น "1-3, 5, 8-10" -> [0, 1, 2, 4, 7, 8, 9]
     function parsePageRange(rangeStr, maxPages) {
       const pages = new Set();
       const parts = rangeStr.split(",");
@@ -108,6 +114,7 @@
       return Array.from(pages).sort((a, b) => a - b);
     }
 
+    // ประมวลผลการแยก PDF
     async function executeSplit() {
       if (!currentFile) return;
 
@@ -137,7 +144,7 @@
           downloadBlob(newBytes, `Feelgood_Split_${getStamp()}.pdf`);
           updateStatus("แยกหน้า PDF สำเร็จเรียบร้อย! ✓", false, true);
         } else {
-          // โหมดแยกทุกหน้า
+          // โหมดแยกทุกหน้าเป็นไฟล์เดี่ยว
           for (let i = 0; i < totalPagesCount; i++) {
             const newPdf = await PDFLib.PDFDocument.create();
             const [copiedPage] = await newPdf.copyPages(srcPdf, [i]);
