@@ -1,6 +1,7 @@
-// tools/merge.js - PDF Merge Engine with Page Preview
+// tools/merge.js - PDF Merge Engine with Reorder & Page Preview
 (function () {
   let selectedFiles = [];
+  let dragSrcIndex = null;
 
   window.initMergeTool = function () {
     const input = document.getElementById("mergeFileInput");
@@ -78,19 +79,66 @@
       submitBtn.disabled = false;
       fileList.innerHTML = "";
 
-      // สร้าง Item รายการไฟล์
+      // แสดงคำแนะนำการสลับลำดับ
+      const hint = document.createElement("p");
+      hint.style.cssText = "font-size: 13px; color: #64748b; margin-bottom: 12px;";
+      hint.textContent = "💡 ทิป: คุณสามารถคลิกค้างแล้วลากการ์ดเพื่อจัดเรียงลำดับไฟล์ก่อนรวมได้";
+      fileList.appendChild(hint);
+
+      // สร้าง Item รายการไฟล์แบบลากสลับลำดับได้ (Draggable)
       for (let index = 0; index < selectedFiles.length; index++) {
         const file = selectedFiles[index];
         const item = document.createElement("div");
         item.className = "merge-item";
-        item.style.cssText = "background: #fff; border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; margin-bottom: 12px;";
+        item.draggable = true;
+        item.dataset.index = index;
+        item.style.cssText = "background: #fff; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; margin-bottom: 12px; cursor: grab; transition: background 0.2s, border-color 0.2s;";
+
+        // Event สำหรับ Drag and Drop จัดลำดับไฟล์
+        item.addEventListener("dragstart", (e) => {
+          dragSrcIndex = index;
+          e.dataTransfer.effectAllowed = "move";
+          item.style.opacity = "0.5";
+        });
+
+        item.addEventListener("dragend", () => {
+          item.style.opacity = "1";
+          document.querySelectorAll(".merge-item").forEach((el) => {
+            el.style.borderColor = "#cbd5e1";
+            el.style.background = "#fff";
+          });
+        });
+
+        item.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          item.style.borderColor = "#3b82f6";
+          item.style.background = "#eff6ff";
+        });
+
+        item.addEventListener("dragleave", () => {
+          item.style.borderColor = "#cbd5e1";
+          item.style.background = "#fff";
+        });
+
+        item.addEventListener("drop", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const targetIndex = parseInt(item.dataset.index, 10);
+          if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+            // สลับตำแหน่งไฟล์ใน Array
+            const movedItem = selectedFiles.splice(dragSrcIndex, 1)[0];
+            selectedFiles.splice(targetIndex, 0, movedItem);
+            renderList();
+          }
+        });
 
         const itemHeader = document.createElement("div");
         itemHeader.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;";
         itemHeader.innerHTML = `
-          <div style="font-weight: 600; color: #1e293b;">
-            📄 ${index + 1}. ${file.name}
-            <span id="pageCount_${index}" style="font-size: 12px; color: #64748b; margin-left: 8px;">(กำลังคำนวณหน้า...)</span>
+          <div style="font-weight: 600; color: #1e293b; pointer-events: none;">
+            ⋮⋮ 📄 ${index + 1}. ${file.name}
+            <span id="pageCount_${index}" style="font-size: 12px; color: #64748b; margin-left: 8px;">(กำลังโหลด...)</span>
           </div>
         `;
 
@@ -98,7 +146,8 @@
         removeBtn.textContent = "✕ ลบ";
         removeBtn.className = "secondary-sm";
         removeBtn.style.cssText = "color: #dc2626; border-color: #fca5a5; padding: 2px 8px; font-size: 12px; cursor: pointer;";
-        removeBtn.onclick = () => {
+        removeBtn.onclick = (e) => {
+          e.stopPropagation();
           selectedFiles.splice(index, 1);
           renderList();
         };
@@ -109,13 +158,13 @@
         // คอนเทนเนอร์แสดง Grid ตัวอย่างหน้ากระดาษ
         const pageGrid = document.createElement("div");
         pageGrid.className = "merge-page-grid";
-        pageGrid.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 8px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; min-height: 80px; align-items: center;";
-        pageGrid.innerHTML = '<span style="font-size: 12px; color: #94a3b8;">กำลังโหลดตัวอย่างหน้าเอกสาร...</span>';
+        pageGrid.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 8px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; min-height: 80px; align-items: center; pointer-events: none;";
+        pageGrid.innerHTML = '<span style="font-size: 12px; color: #94a3b8;">กำลังโหลดตัวอย่าง...</span>';
 
         item.appendChild(pageGrid);
         fileList.appendChild(item);
 
-        // โหลดข้อมูลไฟล์และแสดง Thumbnail ตัวอย่าง
+        // โหลดข้อมูลและแสดง Thumbnail
         loadAndRenderPreviews(file, index, pageGrid);
       }
     }
@@ -124,13 +173,11 @@
       try {
         const bytes = await file.arrayBuffer();
 
-        // 1. อ่านจำนวนหน้าด้วย PDF-Lib
         const pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
         const count = pdfDoc.getPageCount();
         const pageCountEl = document.getElementById(`pageCount_${index}`);
         if (pageCountEl) pageCountEl.textContent = `(${count} หน้า)`;
 
-        // 2. Render ตัวอย่างแต่ละหน้าด้วย PDF.js
         if (window.pdfjsLib) {
           const loadingTask = pdfjsLib.getDocument({ data: bytes });
           const pdfJsDoc = await loadingTask.promise;
@@ -138,7 +185,7 @@
 
           for (let pageNum = 1; pageNum <= count; pageNum++) {
             const page = await pdfJsDoc.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 0.2 }); // สเกลขนาด Thumbnail ย่อเล็กพอเหมาะ
+            const viewport = page.getViewport({ scale: 0.2 });
 
             const pageCard = document.createElement("div");
             pageCard.style.cssText = "display: flex; flex-direction: column; align-items: center; background: #fff; padding: 4px; border-radius: 6px; border: 1px solid #cbd5e1; flex-shrink: 0;";
@@ -159,7 +206,7 @@
             gridElement.appendChild(pageCard);
           }
         } else {
-          gridElement.innerHTML = '<span style="font-size: 12px; color: #94a3b8;">ไม่รองรับการแสดงพรีวิว</span>';
+          gridElement.innerHTML = '<span style="font-size: 12px; color: #94a3b8;">ไม่รองรับพรีวิว</span>';
         }
       } catch (err) {
         gridElement.innerHTML = `<span style="font-size: 12px; color: #dc2626;">ไม่สามารถอ่านไฟล์ได้: ${err.message}</span>`;
