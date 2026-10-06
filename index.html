@@ -145,19 +145,20 @@
 <section id="view-split" class="view-section hidden">
   <div class="hero">
     <h1>แยก PDF ได้ตามต้องการ</h1>
-    <p>เลือกไฟล์ PDF กำหนดช่วงหน้า หรือแยกทุกหน้าเป็นไฟล์ใหม่ได้ทันที</p>
+    <p>เลือกไฟล์ PDF ดูตัวอย่างหน้า เอกสาร แล้วเลือกช่วงหน้าที่ต้องการแยกได้ทันที</p>
   </div>
 
   <div class="card">
     <input id="splitFileInput" type="file" accept="application/pdf,.pdf" hidden>
-    <label for="splitFileInput" class="drop" id="splitDropArea">
+    <!-- เอา id="splitDropArea" ออกจาก <label> หรือจัดการคลิกผ่าน JS จุดเดียว -->
+    <div class="drop" id="splitDropArea">
       <div class="icon">✂️</div>
       <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
       <span>หรือ</span>
       <span class="btn-choose">เลือกไฟล์ PDF (1 ไฟล์)</span>
-    </label>
+    </div>
 
-    <!-- โซนตั้งค่าการแยกหน้า -->
+    <!-- โซนตั้งค่าและการแสดงพรีวิวหน้า PDF -->
     <div id="splitWorkspace" class="workspace hidden">
       <div class="workspace-toolbar">
         <div class="file-info">
@@ -165,6 +166,9 @@
           <span id="splitPageCount" class="page-count-badge">0 หน้า</span>
         </div>
       </div>
+
+      <!-- พื้นที่แสดง Preview ตัวอย่างแต่ละหน้า (ใช้ CSS page-grid เดียวกับ Rotate) -->
+      <div id="splitPageGrid" class="page-grid" style="max-height: 350px; overflow-y: auto; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; margin-bottom: 20px;"></div>
 
       <div style="margin: 20px 0;">
         <label style="display:block; font-weight:600; margin-bottom:8px;">รูปแบบการแยกหน้า:</label>

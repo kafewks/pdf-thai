@@ -1,4 +1,4 @@
-// tools/split.js - PDF Split Engine
+// tools/split.js - PDF Split Engine with Page Preview
 (function () {
   let currentFile = null;
   let totalPagesCount = 0;
@@ -12,24 +12,27 @@
     const status = document.getElementById("splitStatus");
     const rangeBox = document.getElementById("splitRangeBox");
     const modeRadios = document.querySelectorAll('input[name="splitMode"]');
+    const pageGrid = document.getElementById("splitPageGrid");
 
     if (!input) return;
 
-    // ผูก Event บายดิ่งครั้งเดียวเพื่อป้องกันปัญหา Memory Leak หรือการทำงานซ้ำ
     if (!input.dataset.bound) {
       input.dataset.bound = "true";
 
-      // 1. กดที่กล่อง Drop Zone เพื่อเปิดตัวเลือกไฟล์
-      drop.addEventListener("click", () => input.click());
+      // 1. แก้ไขปัญหาเปิดเลือกไฟล์ซ้ำ 2 รอบ (สั่งคลิกจุดเดียวจาก Drop Area)
+      drop.addEventListener("click", (e) => {
+        e.preventDefault();
+        input.click();
+      });
 
-      // 2. เมื่อเลือกไฟล์ผ่าน File Dialog
+      // 2. เลือกไฟล์ผ่าน File Dialog
       input.addEventListener("change", (e) => {
         if (e.target.files && e.target.files[0]) {
           loadPdf(e.target.files[0]);
         }
       });
 
-      // 3. ป้องกัน Default Event และจัดการ Drag Over / Drop
+      // 3. รองรับ Drag & Drop
       drop.addEventListener("dragover", (e) => {
         e.preventDefault();
         drop.style.borderColor = "#356ae6";
@@ -55,7 +58,7 @@
         }
       });
 
-      // 4. สลับโหมดการแยกหน้า (Range / All)
+      // 4. สลับโหมดแยกหน้า
       modeRadios.forEach((r) => {
         r.addEventListener("change", (e) => {
           if (e.target.value === "all") {
@@ -70,27 +73,77 @@
       submitBtn.onclick = executeSplit;
     }
 
-    // ฟังก์ชันอ่านไฟล์ PDF ด้วย PDF-Lib
+    // โหลด PDF และเรนเดอร์ตัวอย่างหน้ากระดาษ (Preview)
     async function loadPdf(file) {
       currentFile = file;
       drop.classList.add("hidden");
       workspace.classList.remove("hidden");
       document.getElementById("splitFileName").textContent = file.name;
+      pageGrid.innerHTML = '<p style="text-align:center; width:100%; color:#64748b;">กำลังโหลดตัวอย่างหน้าเอกสาร...</p>';
       updateStatus("");
 
       try {
         const bytes = await file.arrayBuffer();
+
+        // 1. ใช้ PDF-Lib เพื่ออ่านโครงสร้างไฟล์หลัก
         const pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
         totalPagesCount = pdfDoc.getPageCount();
 
         document.getElementById("splitPageCount").textContent = `${totalPagesCount} หน้า`;
         document.getElementById("splitPagesInput").placeholder = `เช่น 1-${totalPagesCount}`;
+
+        // 2. ใช้ PDF.js เพื่อ Render ตัวอย่างรูปภาพแต่ละหน้า (Preview Only)
+        if (window.pdfjsLib) {
+          const loadingTask = pdfjsLib.getDocument({ data: bytes });
+          const pdfJsDoc = await loadingTask.promise;
+          pageGrid.innerHTML = ""; // ล้าง Loading
+
+          for (let pageNum = 1; pageNum <= totalPagesCount; pageNum++) {
+            renderPagePreview(pdfJsDoc, pageNum);
+          }
+        } else {
+          pageGrid.innerHTML = '<p style="color:#64748b; text-align:center;">ไม่สามารถแสดงพรีวิวได้ แต่ยังสามารถแยกหน้าได้ตามปกติ</p>';
+        }
       } catch (err) {
         updateStatus(`ไม่สามารถอ่านไฟล์ PDF ได้: ${err.message}`, true);
       }
     }
 
-    // ฟังก์ชันคำนวณช่วงหน้า เช่น "1-3, 5, 8-10" -> [0, 1, 2, 4, 7, 8, 9]
+    // ฟังก์ชันสร้าง Canvas เรนเดอร์รูปภาพของแต่ละหน้า PDF
+    async function renderPagePreview(pdfJsDoc, pageNum) {
+      try {
+        const page = await pdfJsDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 0.3 }); // ย่อสเกลสำหรับ Preview
+
+        const pageCard = document.createElement("div");
+        pageCard.className = "page-card";
+        pageCard.style.cssText = "display:flex; flex-direction:column; align-items:center; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;";
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        };
+
+        const pageLabel = document.createElement("span");
+        pageLabel.className = "page-num";
+        pageLabel.textContent = `หน้า ${pageNum}`;
+        pageLabel.style.cssText = "font-size:12px; font-weight:600; color:#475569; margin-top:6px;";
+
+        pageCard.appendChild(canvas);
+        pageCard.appendChild(pageLabel);
+        pageGrid.appendChild(pageCard);
+
+        await page.render(renderContext).promise;
+      } catch (e) {
+        console.error("Error rendering page preview:", e);
+      }
+    }
+
     function parsePageRange(rangeStr, maxPages) {
       const pages = new Set();
       const parts = rangeStr.split(",");
@@ -114,7 +167,6 @@
       return Array.from(pages).sort((a, b) => a - b);
     }
 
-    // ประมวลผลการแยก PDF
     async function executeSplit() {
       if (!currentFile) return;
 
@@ -144,7 +196,6 @@
           downloadBlob(newBytes, `Feelgood_Split_${getStamp()}.pdf`);
           updateStatus("แยกหน้า PDF สำเร็จเรียบร้อย! ✓", false, true);
         } else {
-          // โหมดแยกทุกหน้าเป็นไฟล์เดี่ยว
           for (let i = 0; i < totalPagesCount; i++) {
             const newPdf = await PDFLib.PDFDocument.create();
             const [copiedPage] = await newPdf.copyPages(srcPdf, [i]);
@@ -181,6 +232,7 @@
       drop.classList.remove("hidden");
       input.value = "";
       document.getElementById("splitPagesInput").value = "";
+      pageGrid.innerHTML = "";
       updateStatus("");
     }
 
