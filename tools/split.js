@@ -1,9 +1,9 @@
 // tools/split.js - PDF Split Engine
-(function() {
+(function () {
   let currentFile = null;
   let totalPagesCount = 0;
 
-  window.initSplitTool = function() {
+  window.initSplitTool = function () {
     const input = document.getElementById("splitFileInput");
     const drop = document.getElementById("splitDropArea");
     const workspace = document.getElementById("splitWorkspace");
@@ -13,48 +13,75 @@
     const rangeBox = document.getElementById("splitRangeBox");
     const modeRadios = document.querySelectorAll('input[name="splitMode"]');
 
-    if (!input || input.dataset.bound) return;
-    input.dataset.bound = "true";
+    if (!input) return;
 
-    input.addEventListener("change", e => {
-      if (e.target.files[0]) loadPdf(e.target.files[0]);
-    });
+    // ผูก Event แค่ครั้งเดียว
+    if (!input.dataset.bound) {
+      input.dataset.bound = "true";
 
-    drop.addEventListener("drop", e => {
-      const f = e.dataTransfer.files[0];
-      if (f && (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"))) {
-        loadPdf(f);
-      }
-    });
+      // 1. คลิกที่ Drop Zone เพื่อเปิดตัวเลือกไฟล์
+      drop.addEventListener("click", () => input.click());
 
-    modeRadios.forEach(r => {
-      r.addEventListener("change", (e) => {
-        if (e.target.value === "all") {
-          rangeBox.classList.add("hidden");
-        } else {
-          rangeBox.classList.remove("hidden");
+      // 2. เลือกไฟล์ผ่าน File Input
+      input.addEventListener("change", (e) => {
+        if (e.target.files && e.target.files[0]) {
+          loadPdf(e.target.files[0]);
         }
       });
-    });
 
-    cancelBtn.onclick = resetWorkspace;
-    submitBtn.onclick = executeSplit;
+      // 3. รองรับ Drag & Drop
+      drop.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        drop.classList.add("dragover");
+      });
+
+      drop.addEventListener("dragleave", () => {
+        drop.classList.remove("dragover");
+      });
+
+      drop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        drop.classList.remove("dragover");
+        const f = e.dataTransfer.files[0];
+        if (f && (f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf"))) {
+          loadPdf(f);
+        } else {
+          updateStatus("กรุณาเลือกไฟล์ PDF เท่านั้น", true);
+        }
+      });
+
+      // 4. สลับโหมดการแยกหน้า
+      modeRadios.forEach((r) => {
+        r.addEventListener("change", (e) => {
+          if (e.target.value === "all") {
+            rangeBox.classList.add("hidden");
+          } else {
+            rangeBox.classList.remove("hidden");
+          }
+        });
+      });
+
+      cancelBtn.onclick = resetWorkspace;
+      submitBtn.onclick = executeSplit;
+    }
 
     async function loadPdf(file) {
       currentFile = file;
       drop.classList.add("hidden");
       workspace.classList.remove("hidden");
       document.getElementById("splitFileName").textContent = file.name;
-      showStatus("");
+      updateStatus("");
 
       try {
         const bytes = await file.arrayBuffer();
+        // โหลด PDF ผ่าน PDFLib
         const pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
         totalPagesCount = pdfDoc.getPageCount();
+
         document.getElementById("splitPageCount").textContent = `${totalPagesCount} หน้า`;
-        document.getElementById("splitPagesInput").placeholder = `1-${totalPagesCount}`;
+        document.getElementById("splitPagesInput").placeholder = `เช่น 1-${totalPagesCount}`;
       } catch (err) {
-        showStatus(`ไม่สามารถอ่านไฟล์ PDF ได้: ${err.message}`, true);
+        updateStatus(`ไม่สามารถอ่านไฟล์ PDF ได้: ${err.message}`, true);
       }
     }
 
@@ -65,7 +92,7 @@
       for (let part of parts) {
         part = part.trim();
         if (part.includes("-")) {
-          const [start, end] = part.split("-").map(n => parseInt(n.trim(), 10));
+          const [start, end] = part.split("-").map((n) => parseInt(n.trim(), 10));
           if (!isNaN(start) && !isNaN(end)) {
             for (let i = Math.max(1, start); i <= Math.min(maxPages, end); i++) {
               pages.add(i - 1);
@@ -86,7 +113,7 @@
 
       const mode = document.querySelector('input[name="splitMode"]:checked').value;
       submitBtn.disabled = true;
-      showStatus("กำลังแยกหน้า PDF...");
+      updateStatus("กำลังแยกหน้า PDF...");
 
       try {
         const bytes = await currentFile.arrayBuffer();
@@ -97,32 +124,32 @@
           const pageIndices = parsePageRange(rangeVal, totalPagesCount);
 
           if (pageIndices.length === 0) {
-            showStatus("กรุณาระบุช่วงหน้าให้ถูกต้อง", true);
+            updateStatus("กรุณาระบุช่วงหน้าให้ถูกต้อง (เช่น 1-3)", true);
             submitBtn.disabled = false;
             return;
           }
 
           const newPdf = await PDFLib.PDFDocument.create();
           const copiedPages = await newPdf.copyPages(srcPdf, pageIndices);
-          copiedPages.forEach(p => newPdf.addPage(p));
+          copiedPages.forEach((p) => newPdf.addPage(p));
 
           const newBytes = await newPdf.save();
-          downloadBlob(newBytes, `Feelgood_Split_${dateStamp()}.pdf`);
-          showStatus("แยกหน้า PDF สำเร็จเรียบร้อย! ✓", false);
+          downloadBlob(newBytes, `Feelgood_Split_${getStamp()}.pdf`);
+          updateStatus("แยกหน้า PDF สำเร็จเรียบร้อย! ✓", false, true);
         } else {
-          // โหมดแยกทุกหน้า (ดาวน์โหลดทีละไฟล์)
+          // โหมดแยกทุกหน้า
           for (let i = 0; i < totalPagesCount; i++) {
             const newPdf = await PDFLib.PDFDocument.create();
             const [copiedPage] = await newPdf.copyPages(srcPdf, [i]);
             newPdf.addPage(copiedPage);
 
             const newBytes = await newPdf.save();
-            downloadBlob(newBytes, `Feelgood_Page_${i + 1}_${dateStamp()}.pdf`);
+            downloadBlob(newBytes, `Feelgood_Page_${i + 1}_${getStamp()}.pdf`);
           }
-          showStatus(`แยกไฟล์เรียบร้อยทั้งหมด ${totalPagesCount} หน้า! ✓`, false);
+          updateStatus(`แยกไฟล์เรียบร้อยทั้งหมด ${totalPagesCount} หน้า! ✓`, false, true);
         }
       } catch (err) {
-        showStatus(`เกิดข้อผิดพลาด: ${err.message}`, true);
+        updateStatus(`เกิดข้อผิดพลาด: ${err.message}`, true);
       } finally {
         submitBtn.disabled = false;
       }
@@ -147,17 +174,20 @@
       drop.classList.remove("hidden");
       input.value = "";
       document.getElementById("splitPagesInput").value = "";
-      showStatus("");
+      updateStatus("");
     }
 
-    function showStatus(msg, isError = false) {
-      status.textContent = msg;
-      status.style.color = isError ? "#dc2626" : "#16a34a";
+    function updateStatus(msg, isError = false, isSuccess = false) {
+      if (typeof window.showStatus === "function") {
+        window.showStatus(status, msg, isError, isSuccess);
+      } else {
+        status.textContent = msg;
+        status.style.color = isError ? "#dc2626" : isSuccess ? "#16a34a" : "#4a5568";
+      }
     }
 
-    function dateStamp() {
-      const d = new Date();
-      return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+    function getStamp() {
+      return typeof window.dateStamp === "function" ? window.dateStamp() : "file";
     }
   };
 })();
