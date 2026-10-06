@@ -66,33 +66,34 @@
     </section>
 
     <!-- ========================================== -->
-    <!-- VIEW 1: เครื่องมือ รวม PDF (Merge) -->
-    <!-- ========================================== -->
-    <section id="view-merge" class="view-section hidden">
-      <div class="hero">
-        <h1>รวม PDF ง่าย ๆ ในไม่กี่คลิก</h1>
-        <p>เลือกไฟล์ PDF แล้วลากเรียงลำดับ จากนั้นกดรวมได้ทันที</p>
-      </div>
+<!-- VIEW 1: เครื่องมือ รวม PDF (Merge) -->
+<!-- ========================================== -->
+<section id="view-merge" class="view-section hidden">
+  <div class="hero">
+    <h1>รวม PDF ง่าย ๆ ในไม่กี่คลิก</h1>
+    <p>เลือกไฟล์ PDF ลากจัดเรียงลำดับเอกสาร พร้อมดูตัวอย่างหน้าไฟล์ก่อนกดรวมได้ทันที</p>
+  </div>
 
-      <div class="card">
-        <input id="mergeFileInput" type="file" accept="application/pdf,.pdf" multiple hidden>
-        <label for="mergeFileInput" class="drop" id="mergeDropArea">
-          <div class="icon">📄</div>
-          <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
-          <span>หรือ</span>
-          <span class="btn-choose">เลือกไฟล์ PDF</span>
-          <small>รองรับหลายไฟล์ • ไม่จำเป็นต้องสมัครสมาชิก</small>
-        </label>
+  <div class="card">
+    <input id="mergeFileInput" type="file" accept="application/pdf,.pdf" multiple hidden>
+    <label for="mergeFileInput" class="drop" id="mergeDropArea">
+      <div class="icon">📄</div>
+      <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
+      <span>หรือ</span>
+      <span class="btn-choose">เลือกไฟล์ PDF</span>
+      <small>รองรับหลายไฟล์ • ไม่จำเป็นต้องสมัครสมาชิก</small>
+    </label>
 
-        <div id="mergeFileList" class="list hidden"></div>
+    <!-- รายการไฟล์ PDF ที่เลือกไว้ -->
+    <div id="mergeFileList" class="list hidden"></div>
 
-        <div class="actions">
-          <button id="mergeClearBtn" class="secondary hidden">ล้างทั้งหมด</button>
-          <button id="mergeSubmitBtn" class="primary" disabled>รวม PDF</button>
-        </div>
-        <div id="mergeStatus" class="status"></div>
-      </div>
-    </section>
+    <div class="actions">
+      <button id="mergeClearBtn" class="secondary hidden">ล้างทั้งหมด</button>
+      <button id="mergeSubmitBtn" class="primary" disabled>รวม PDF</button>
+    </div>
+    <div id="mergeStatus" class="status"></div>
+  </div>
+</section>
 
     <!-- ========================================== -->
     <!-- VIEW 2: เครื่องมือ หมุน / ลบหน้า PDF (Rotate) -->
