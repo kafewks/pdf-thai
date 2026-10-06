@@ -42,6 +42,9 @@ function handleRoute() {
   if (hash === "rotate" && typeof window.initRotateTool === "function") {
     window.initRotateTool();
   }
+  if (hash === "split" && typeof window.initSplitTool === "function") {
+    window.initSplitTool();
+  }
 }
 
 /**
