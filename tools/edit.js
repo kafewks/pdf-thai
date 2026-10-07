@@ -1,4 +1,4 @@
-// tools/edit.js - PDF Overlay Annotation Editor Engine (Thai Language Supported)
+// tools/edit.js - Full Overlay PDF Editor Engine
 (function () {
   let currentFile = null;
   let pdfJsDoc = null;
@@ -25,7 +25,10 @@
     const toolWhiteoutBtn = document.getElementById("toolWhiteoutBtn");
     const toolHighlightBtn = document.getElementById("toolHighlightBtn");
     const toolSignBtn = document.getElementById("toolSignBtn");
+
     const textOptionsBox = document.getElementById("textOptionsBox");
+    const whiteoutOptionsBox = document.getElementById("whiteoutOptionsBox");
+    const highlightOptionsBox = document.getElementById("highlightOptionsBox");
 
     const prevPageBtn = document.getElementById("prevPageBtn");
     const nextPageBtn = document.getElementById("nextPageBtn");
@@ -36,6 +39,7 @@
     const clearSignBtn = document.getElementById("clearSignBtn");
     const cancelSignBtn = document.getElementById("cancelSignBtn");
     const useSignBtn = document.getElementById("useSignBtn");
+    const signColorInput = document.getElementById("signColorInput");
 
     if (!input || input.dataset.bound) return;
     input.dataset.bound = "true";
@@ -46,11 +50,12 @@
       if (e.target.files && e.target.files[0]) loadPdf(e.target.files[0]);
     });
 
+    // สลับโหมดเครื่องมือ
     const tools = [
-      { btn: toolTextBtn, mode: "text" },
-      { btn: toolWhiteoutBtn, mode: "whiteout" },
-      { btn: toolHighlightBtn, mode: "highlight" },
-      { btn: toolSignBtn, mode: "signature" }
+      { btn: toolTextBtn, mode: "text", box: textOptionsBox },
+      { btn: toolWhiteoutBtn, mode: "whiteout", box: whiteoutOptionsBox },
+      { btn: toolHighlightBtn, mode: "highlight", box: highlightOptionsBox },
+      { btn: toolSignBtn, mode: "signature", box: null }
     ];
 
     tools.forEach(t => {
@@ -60,16 +65,14 @@
           x.btn.style.background = "#ffffff";
           x.btn.style.color = "#475569";
           x.btn.style.borderColor = "#cbd5e1";
+          if (x.box) x.box.classList.add("hidden");
         });
+
         t.btn.style.background = "#356ae6";
         t.btn.style.color = "#ffffff";
         t.btn.style.borderColor = "#356ae6";
 
-        if (activeTool === "text") {
-          textOptionsBox.classList.remove("hidden");
-        } else {
-          textOptionsBox.classList.add("hidden");
-        }
+        if (t.box) t.box.classList.remove("hidden");
 
         if (activeTool === "signature" && !currentSignatureDataUrl) {
           openSignatureModal();
@@ -77,9 +80,10 @@
       });
     });
 
-    // วางข้อความ ลายเซ็น หรือลากกรอบ Whiteout/Highlight
+    // Event วาง/วาดวัตถุ
     pdfContainer.addEventListener("mousedown", (e) => {
-      if (!pdfJsDoc) return;
+      if (!pdfJsDoc || e.target.classList.contains("del-btn")) return;
+
       const rect = pdfContainer.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
@@ -115,10 +119,14 @@
         rectStartX = clickX;
         rectStartY = clickY;
 
+        const fillColor = activeTool === "whiteout" 
+          ? document.getElementById("whiteoutColorInput").value 
+          : document.getElementById("highlightColorSelect").value;
+
         activeRectPreview = document.createElement("div");
         activeRectPreview.style.position = "absolute";
         activeRectPreview.style.border = "1px dashed #2563eb";
-        activeRectPreview.style.background = activeTool === "whiteout" ? "#ffffff" : "rgba(255, 235, 59, 0.4)";
+        activeRectPreview.style.background = fillColor;
         activeRectPreview.style.left = `${rectStartX}px`;
         activeRectPreview.style.top = `${rectStartY}px`;
         pdfContainer.appendChild(activeRectPreview);
@@ -161,21 +169,36 @@
       activeRectPreview = null;
 
       if (width > 5 && height > 5) {
-        addAnnotation({
-          type: activeTool,
-          x: left,
-          y: top,
-          width: width,
-          height: height
-        });
+        if (activeTool === "whiteout") {
+          addAnnotation({
+            type: "whiteout",
+            x: left,
+            y: top,
+            width: width,
+            height: height,
+            color: document.getElementById("whiteoutColorInput").value
+          });
+        } else if (activeTool === "highlight") {
+          addAnnotation({
+            type: "highlight",
+            x: left,
+            y: top,
+            width: width,
+            height: height,
+            color: document.getElementById("highlightColorSelect").value
+          });
+        }
       }
     });
 
     // Signature Pad Controller
     let isSigning = false;
     const sigCtx = signatureCanvas.getContext("2d");
-    sigCtx.lineWidth = 2;
-    sigCtx.strokeStyle = "#000000";
+    sigCtx.lineWidth = 2.5;
+
+    signColorInput.addEventListener("change", (e) => {
+      sigCtx.strokeStyle = e.target.value;
+    });
 
     function getCanvasPos(e) {
       const rect = signatureCanvas.getBoundingClientRect();
@@ -184,7 +207,13 @@
       return { x: clientX - rect.left, y: clientY - rect.top };
     }
 
-    function startSign(e) { isSigning = true; const p = getCanvasPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); }
+    function startSign(e) { 
+      isSigning = true; 
+      sigCtx.strokeStyle = signColorInput.value;
+      const p = getCanvasPos(e); 
+      sigCtx.beginPath(); 
+      sigCtx.moveTo(p.x, p.y); 
+    }
     function moveSign(e) { if (!isSigning) return; const p = getCanvasPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); }
     function endSign() { isSigning = false; }
 
@@ -205,6 +234,7 @@
 
     function openSignatureModal() {
       sigCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+      sigCtx.strokeStyle = signColorInput.value;
       signModal.classList.remove("hidden");
     }
 
@@ -275,6 +305,7 @@
       renderOverlayItems();
     }
 
+    // แสดงผลและแก้ปุ่มลบวัตถุ (✕) ให้คลิกได้ถูกต้อง
     function renderOverlayItems() {
       const overlayLayer = document.getElementById("overlayLayer");
       overlayLayer.innerHTML = "";
@@ -286,6 +317,7 @@
         elem.style.left = `${ann.x}px`;
         elem.style.top = `${ann.y}px`;
         elem.style.pointerEvents = "auto";
+        elem.style.zIndex = "20";
 
         if (ann.type === "text") {
           elem.style.fontSize = `${ann.size}px`;
@@ -296,12 +328,12 @@
         } else if (ann.type === "whiteout") {
           elem.style.width = `${ann.width}px`;
           elem.style.height = `${ann.height}px`;
-          elem.style.background = "#ffffff";
+          elem.style.background = ann.color || "#ffffff";
           elem.style.border = "1px dashed #cbd5e1";
         } else if (ann.type === "highlight") {
           elem.style.width = `${ann.width}px`;
           elem.style.height = `${ann.height}px`;
-          elem.style.background = "rgba(255, 235, 59, 0.4)";
+          elem.style.background = ann.color || "rgba(255, 235, 59, 0.4)";
         } else if (ann.type === "image") {
           const img = document.createElement("img");
           img.src = ann.dataUrl;
@@ -310,11 +342,16 @@
           elem.appendChild(img);
         }
 
-        const delBtn = document.createElement("span");
+        // ปุ่มลบรายการ (✕)
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "del-btn";
         delBtn.textContent = "✕";
-        delBtn.style.cssText = "position:absolute; top:-10px; right:-10px; background:#dc2626; color:#fff; border-radius:50%; width:16px; height:16px; font-size:10px; display:flex; align-items:center; justify-content:center; cursor:pointer;";
+        delBtn.style.cssText = "position:absolute; top:-12px; right:-12px; background:#dc2626; color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:11px; font-weight:bold; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.2); z-index:30;";
+        
         delBtn.onclick = (e) => {
           e.stopPropagation();
+          e.preventDefault();
           currentAnns.splice(index, 1);
           renderOverlayItems();
         };
@@ -324,7 +361,7 @@
       });
     }
 
-    // แปลงข้อความภาษาไทยเป็น Image Canvas เพื่อเรนเดอร์ลงใน PDF ได้แม่นยำ 100%
+    // แปลงข้อความภาษาไทยเป็น PNG Image Canvas ก่อนเซฟลง PDF
     function textToImageCanvas(text, size, colorHex) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -350,6 +387,15 @@
       };
     }
 
+    function hexToRgbRatio(hexStr) {
+      let hex = hexStr.replace("#", "");
+      if (hex.length === 3) hex = hex.split('').map(s => s + s).join('');
+      const r = parseInt(hex.substring(0, 2), 16) / 255;
+      const g = parseInt(hex.substring(2, 4), 16) / 255;
+      const b = parseInt(hex.substring(4, 6), 16) / 255;
+      return { r, g, b };
+    }
+
     async function saveEditedPdf() {
       if (!currentFile) return;
 
@@ -372,7 +418,6 @@
             const pdfY = pageHeight - (ann.y / currentScale);
 
             if (ann.type === "text") {
-              // ใช้ Canvas แปลงข้อความ (รองรับภาษาไทย) เป็น PNG แปะลง PDF
               const textImgData = textToImageCanvas(ann.text, ann.size / currentScale, ann.color);
               const embeddedTextImg = await pdfDoc.embedPng(textImgData.dataUrl);
 
@@ -383,20 +428,26 @@
                 height: textImgData.height
               });
             } else if (ann.type === "whiteout") {
+              const rgb = hexToRgbRatio(ann.color || "#ffffff");
               pdfPage.drawRectangle({
                 x: pdfX,
                 y: pdfY - (ann.height / currentScale),
                 width: ann.width / currentScale,
                 height: ann.height / currentScale,
-                color: PDFLib.rgb(1, 1, 1)
+                color: PDFLib.rgb(rgb.r, rgb.g, rgb.b)
               });
             } else if (ann.type === "highlight") {
+              let rgb = { r: 1, g: 0.92, b: 0.23 }; // ค่าเริ่มต้นสีเหลือง
+              if (ann.color.includes("76, 175, 80")) rgb = { r: 0.3, g: 0.69, b: 0.31 }; // เขียว
+              else if (ann.color.includes("33, 150, 243")) rgb = { r: 0.13, g: 0.59, b: 0.95 }; // ฟ้า
+              else if (ann.color.includes("233, 30, 99")) rgb = { r: 0.91, g: 0.12, b: 0.39 }; // ชมพู
+
               pdfPage.drawRectangle({
                 x: pdfX,
                 y: pdfY - (ann.height / currentScale),
                 width: ann.width / currentScale,
                 height: ann.height / currentScale,
-                color: PDFLib.rgb(1, 0.92, 0.23),
+                color: PDFLib.rgb(rgb.r, rgb.g, rgb.b),
                 opacity: 0.35
               });
             } else if (ann.type === "image") {
