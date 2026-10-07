@@ -20,11 +20,12 @@
   <img src="LogoFeelGood.jpeg" alt="Feelgood Logo" class="brand-logo">
 </a>
     <nav class="nav-menu">
-      <a href="#" class="nav-link active" data-tool="hub">หน้าแรก</a>
-      <a href="#merge" class="nav-link" data-tool="merge">รวม PDF</a>
-      <a href="#rotate" class="nav-link" data-tool="rotate">หมุน/ลบหน้า</a>
-      <a href="#split" class="nav-link" data-tool="split">แยก PDF</a>
-    </nav>
+  <a href="#" class="nav-link active" data-tool="hub">หน้าแรก</a>
+  <a href="#merge" class="nav-link" data-tool="merge">รวม PDF</a>
+  <a href="#rotate" class="nav-link" data-tool="rotate">หมุน/ลบหน้า</a>
+  <a href="#split" class="nav-link" data-tool="split">แยก PDF</a>
+  <a href="#img2pdf" class="nav-link" data-tool="img2pdf">แปลงรูปเป็น PDF</a> <!-- << เพิ่มบรรทัดนี้ -->
+</nav>
     <div class="badge">🔒 ประมวลผลในเครื่อง</div>
   </header>
 
@@ -65,6 +66,13 @@
           <p>แยกหน้าเอกสาร PDF หรือเลือกรวมเฉพาะช่วงหน้าที่ต้องการ</p>
           <span class="tool-btn">ใช้งาน</span>
         </a>
+
+        <a href="#img2pdf" class="tool-card">
+  <div class="tool-icon">🖼️</div>
+  <h3>แปลงรูปภาพเป็น PDF</h3>
+  <p>แปลงรูปถ่าย JPG, PNG หรือ WebP เป็นไฟล์ PDF จัดเรียงลำดับได้ตามต้องการ</p>
+  <span class="tool-btn">ใช้งาน</span>
+</a>
       </div>
     </section>
 
@@ -199,6 +207,67 @@
   </div>
 </section>
 
+<!-- ========================================== -->
+<!-- VIEW 4: เครื่องมือ แปลงรูปภาพเป็น PDF (Image to PDF) -->
+<!-- ========================================== -->
+<section id="view-img2pdf" class="view-section hidden">
+  <div class="hero">
+    <h1>แปลงรูปภาพเป็น PDF</h1>
+    <p>เลือกรูปภาพ JPG, PNG หรือ WebP ลากจัดเรียงลำดับ แล้วแปลงเป็น PDF ได้ง่ายๆ</p>
+  </div>
+
+  <div class="card">
+    <input id="imgFileInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+    <div class="drop" id="imgDropArea">
+      <div class="icon">🖼️</div>
+      <strong>ลากรูปภาพมาวางที่นี่</strong>
+      <span>หรือ</span>
+      <span class="btn-choose">เลือกรูปภาพ</span>
+      <small>รองรับ JPG, PNG, WebP • เลือกได้หลายรูป</small>
+    </div>
+
+    <div id="imgWorkspace" class="workspace hidden">
+      <div class="workspace-toolbar">
+        <div class="file-info">
+          <span class="fname-title">รายการรูปภาพที่เลือก</span>
+          <span id="imgCountBadge" class="page-count-badge">0 รูป</span>
+        </div>
+        <div class="global-actions">
+          <button type="button" id="imgAddMoreBtn" class="secondary-sm">+ เพิ่มรูปภาพ</button>
+          <button type="button" id="imgClearAllBtn" class="secondary-sm" style="color:#dc2626; border-color:#fca5a5;">ล้างทั้งหมด</button>
+        </div>
+      </div>
+
+      <!-- รายการรูปภาพที่เลือกไว้ (สามารถลากสลับลำดับได้) -->
+      <div id="imgPreviewGrid" class="page-grid" style="min-height:120px; padding:12px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; margin-bottom:20px;"></div>
+
+      <!-- ตัวเลือกการตั้งค่า PDF -->
+      <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px; padding:16px; background:#f1f5f9; border-radius:10px;">
+        <div style="flex:1; min-width:180px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">ขนาดหน้ากระดาษ:</label>
+          <select id="imgPageSize" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1;">
+            <option value="fit">ปรับตามขนาดรูปภาพ (Auto Fit)</option>
+            <option value="a4" selected>ขนาดมาตรฐาน A4</option>
+          </select>
+        </div>
+        <div style="flex:1; min-width:180px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">ทิศทางกระดาษ (สำหรับ A4):</label>
+          <select id="imgOrientation" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1;">
+            <option value="portrait" selected>แนวตั้ง (Portrait)</option>
+            <option value="landscape">แนวนอน (Landscape)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="imgSubmitBtn" class="primary">แปลงเป็น PDF และดาวน์โหลด</button>
+      </div>
+    </div>
+
+    <div id="imgStatus" class="status"></div>
+  </div>
+</section>
+
     <!-- Ad Banner Bottom (แสดงก่อน Section ความปลอดภัย) -->
     <div class="ad-container ad-bottom">
       <!-- วางโค้ด <ins class="adsbygoogle"> จาก Google AdSense ที่นี่ -->
@@ -231,7 +300,8 @@
   <!-- App Scripts -->
   <script src="tools/merge.js"></script>
   <script src="tools/rotate.js"></script>
-  <script src="tools/split.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
+  <script src="tools/split.js"></script>
+  <script src="tools/img2pdf.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
   <script src="app.js"></script>
 </body>
 </html>

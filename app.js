@@ -17,34 +17,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function handleRoute() {
   const rawHash = window.location.hash.replace("#", "").trim();
-  const validTools = ["hub", "merge", "rotate", "split"];
+  const validTools = ["hub", "merge", "rotate", "split", "img2pdf"]; // << เพิ่ม "img2pdf"
   
-  // ถ้าไม่มี Hash หรือ Hash ไม่ตรงกับเมนูที่มี ให้กลับไปที่ 'hub'
   const hash = validTools.includes(rawHash) ? rawHash : "hub";
 
-  // ซ่อนทุก View Section
   document.querySelectorAll(".view-section").forEach(el => el.classList.add("hidden"));
 
-  // อัปเดต Active Class ที่ Nav Bar Links
   document.querySelectorAll(".nav-link").forEach(link => {
     link.classList.toggle("active", link.dataset.tool === hash);
   });
 
-  // แสดง View Section ที่เลือกรวมถึงเลื่อนหน้าจอกลับไปด้านบน
   const targetView = document.getElementById(`view-${hash}`) || document.getElementById("view-hub");
   targetView.classList.remove("hidden");
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // Reset หรือ Initialize โมดูลเมื่อเปลี่ยนหน้า
-  if (hash === "merge" && typeof window.initMergeTool === "function") {
-    window.initMergeTool();
-  }
-  if (hash === "rotate" && typeof window.initRotateTool === "function") {
-    window.initRotateTool();
-  }
-  if (hash === "split" && typeof window.initSplitTool === "function") {
-    window.initSplitTool();
-  }
+  // Initialize Tools
+  if (hash === "merge" && typeof window.initMergeTool === "function") window.initMergeTool();
+  if (hash === "rotate" && typeof window.initRotateTool === "function") window.initRotateTool();
+  if (hash === "split" && typeof window.initSplitTool === "function") window.initSplitTool();
+  if (hash === "img2pdf" && typeof window.initImg2PdfTool === "function") window.initImg2PdfTool(); // << เพิ่มบรรทัดนี้
 }
 
 /**
