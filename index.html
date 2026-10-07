@@ -409,13 +409,11 @@
   </div>
 </section>
 
-<!-- ========================================== -->
 <!-- VIEW 7: เครื่องมือ แก้ไข PDF (Overlay Editor) -->
-<!-- ========================================== -->
 <section id="view-edit" class="view-section hidden">
   <div class="hero">
-    <h1>แก้ไข PDF (เพิ่มข้อความ / ลบ / ลายเซ็น / ไฮไลต์)</h1>
-    <p>เลือกเครื่องมือ ลากวางบนหน้าเอกสาร และบันทึกเป็น PDF ใหม่ได้ทันที</p>
+    <h1>แก้ไข PDF (ข้อความ / ลบเนียน / ไฮไลต์ / ลายเซ็น)</h1>
+    <p>เลือกเครื่องมือ ปรับสี ปรับขนาด แล้วลากวางหรือวาดบนหน้าเอกสารได้ทันที</p>
   </div>
 
   <div class="card">
@@ -442,30 +440,57 @@
 
         <!-- แถบเลือกโหมดเครื่องมือ -->
         <div style="display:flex; gap:8px; flex-wrap:wrap; background:#f1f5f9; padding:8px; border-radius:10px; align-items:center;">
-          <button type="button" id="toolTextBtn" class="secondary-sm active-tool" style="background:#356ae6; color:#fff; border-color:#356ae6;">💬 ข้อความ</button>
-          <button type="button" id="toolWhiteoutBtn" class="secondary-sm">⬜ ลบเนียน (Whiteout)</button>
+          <button type="button" id="toolTextBtn" class="secondary-sm" style="background:#356ae6; color:#fff; border-color:#356ae6;">💬 ข้อความ</button>
+          <button type="button" id="toolWhiteoutBtn" class="secondary-sm">⬜ ลบเนียน (Eraser)</button>
           <button type="button" id="toolHighlightBtn" class="secondary-sm">🟨 ไฮไลต์</button>
           <button type="button" id="toolSignBtn" class="secondary-sm">✍️ ลายเซ็น</button>
         </div>
 
-        <!-- ตัวเลือกเพิ่มเติมตามโหมด -->
+        <!-- Option สำหรับโหมด ข้อความ -->
         <div id="textOptionsBox" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
           <input type="text" id="editTextInput" placeholder="พิมพ์ข้อความที่ต้องการใส่..." style="flex:1; min-width:150px; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
-          <label style="font-size:12px; font-weight:600;">ขนาด:
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ขนาด:
             <input type="number" id="textSizeInput" value="16" min="8" max="72" style="width:55px; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
           </label>
-          <label style="font-size:12px; font-weight:600;">สี:
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">สีข้อความ:
             <input type="color" id="textColorInput" value="#000000" style="width:32px; height:28px; border:none; cursor:pointer;">
           </label>
         </div>
+
+        <!-- Option สำหรับโหมด ลบเนียน (Whiteout Options + ดูดสี) -->
+        <div id="whiteoutOptionsBox" class="hidden" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">เลือกสีถมลบ:
+            <input type="color" id="whiteoutColorInput" value="#ffffff" style="width:32px; height:28px; border:none; cursor:pointer;">
+          </label>
+          <button type="button" id="pickColorBtn" class="secondary-sm" style="font-size:12px; padding:4px 8px;">💧 ดูดสีจากหน้ากระดาษ</button>
+          <span style="font-size:12px; color:#64748b;">(ลากเมาส์สร้างกรอบสี่เหลี่ยมถมทับข้อความเดิม)</span>
+        </div>
+
+        <!-- Option สำหรับโหมด ไฮไลต์ (Highlight Palette) -->
+        <div id="highlightOptionsBox" class="hidden" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
+          <span style="font-size:12px; font-weight:600;">เลือกสีไฮไลต์:</span>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <label style="cursor:pointer; display:flex; align-items:center; gap:3px; font-size:12px;">
+              <input type="radio" name="hlColor" value="rgba(255, 235, 59, 0.4)" checked> 🟨 เหลือง
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:3px; font-size:12px;">
+              <input type="radio" name="hlColor" value="rgba(76, 175, 80, 0.4)"> 🟩 เขียว
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:3px; font-size:12px;">
+              <input type="radio" name="hlColor" value="rgba(33, 150, 243, 0.4)"> 🟦 ฟ้า
+            </label>
+            <label style="cursor:pointer; display:flex; align-items:center; gap:3px; font-size:12px;">
+              <input type="radio" name="hlColor" value="rgba(233, 30, 99, 0.4)"> 🌸 ชมพู
+            </label>
+          </div>
+        </div>
       </div>
 
-      <!-- คอนเทนเนอร์แสดงหน้ากระดาษ PDF (จุดลากวาง/วาด) -->
+      <!-- คอนเทนเนอร์แสดงหน้ากระดาษ PDF -->
       <div style="display:flex; justify-content:center; margin:16px 0;">
         <div id="pdfViewContainer" style="position:relative; display:inline-block; border:1px solid #cbd5e1; box-shadow:0 4px 10px rgba(0,0,0,0.1); background:#fff; cursor:crosshair; user-select:none;">
           <canvas id="pdfCanvas"></canvas>
-          <!-- Overlay Layer สำหรับแสดงวัตถุที่เพิ่มเข้าไป -->
-          <div id="overlayLayer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+          <div id="overlayLayer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10;"></div>
         </div>
       </div>
 
@@ -488,7 +513,17 @@
   <div id="signModal" class="hidden" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
     <div style="background:#fff; padding:20px; border-radius:16px; width:90%; max-width:400px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
       <h3 style="margin-bottom:12px; font-size:16px;">วาดลายเซ็นของคุณ</h3>
+      
+      <div style="display:flex; justify-content:center; align-items:center; gap:10px; margin-bottom:12px;">
+        <span style="font-size:12px; font-weight:600;">เลือกสีหมึก:</span>
+        <button type="button" class="sign-color-btn" data-color="#000000" style="width:24px; height:24px; border-radius:50%; background:#000; border:2px solid #356ae6; cursor:pointer;"></button>
+        <button type="button" class="sign-color-btn" data-color="#1e3a8a" style="width:24px; height:24px; border-radius:50%; background:#1e3a8a; border:2px solid transparent; cursor:pointer;"></button>
+        <button type="button" class="sign-color-btn" data-color="#dc2626" style="width:24px; height:24px; border-radius:50%; background:#dc2626; border:2px solid transparent; cursor:pointer;"></button>
+        <input type="color" id="signColorCustom" value="#000000" style="width:28px; height:28px; border:none; cursor:pointer;">
+      </div>
+
       <canvas id="signatureCanvas" width="350" height="150" style="border:1px dashed #cbd5e1; border-radius:8px; background:#f8fafc; cursor:crosshair; touch-action:none;"></canvas>
+      
       <div style="display:flex; justify-content:space-between; margin-top:16px; gap:8px;">
         <button type="button" id="clearSignBtn" class="secondary-sm">ล้างวาดใหม่</button>
         <div style="display:flex; gap:8px;">

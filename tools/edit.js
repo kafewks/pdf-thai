@@ -1,4 +1,4 @@
-// tools/edit.js - Fixed Overlay PDF Editor Engine
+// tools/edit.js - PDF Overlay Editor Engine (Color Selection & Palette Fixed)
 (function () {
   let currentFile = null;
   let pdfJsDoc = null;
@@ -6,6 +6,7 @@
   let currentScale = 1.2;
   let activeTool = "text"; // 'text', 'whiteout', 'highlight', 'signature'
   let currentSignatureDataUrl = null;
+  let currentSignColor = "#000000";
 
   let annotationsByPage = {};
 
@@ -29,6 +30,7 @@
     const textOptionsBox = document.getElementById("textOptionsBox");
     const whiteoutOptionsBox = document.getElementById("whiteoutOptionsBox");
     const highlightOptionsBox = document.getElementById("highlightOptionsBox");
+    const pickColorBtn = document.getElementById("pickColorBtn");
 
     const prevPageBtn = document.getElementById("prevPageBtn");
     const nextPageBtn = document.getElementById("nextPageBtn");
@@ -40,7 +42,6 @@
     const clearSignBtn = document.getElementById("clearSignBtn");
     const cancelSignBtn = document.getElementById("cancelSignBtn");
     const useSignBtn = document.getElementById("useSignBtn");
-    const signColorInput = document.getElementById("signColorInput");
 
     if (!input || input.dataset.bound) return;
     input.dataset.bound = "true";
@@ -51,7 +52,7 @@
       if (e.target.files && e.target.files[0]) loadPdf(e.target.files[0]);
     });
 
-    // 1. ระบบสลับโหมดเครื่องมือ
+    // 1. สลับโหมดเครื่องมือ พร้อมแสดง/ซ่อน กล่องเลือกสีอย่างถูกต้อง
     const tools = [
       { btn: toolTextBtn, mode: "text", box: textOptionsBox },
       { btn: toolWhiteoutBtn, mode: "whiteout", box: whiteoutOptionsBox },
@@ -70,14 +71,20 @@
           x.btn.style.background = "#ffffff";
           x.btn.style.color = "#475569";
           x.btn.style.borderColor = "#cbd5e1";
-          if (x.box) x.box.classList.add("hidden");
+          if (x.box) {
+            x.box.classList.add("hidden");
+            x.box.style.display = "none";
+          }
         });
 
         t.btn.style.background = "#356ae6";
         t.btn.style.color = "#ffffff";
         t.btn.style.borderColor = "#356ae6";
 
-        if (t.box) t.box.classList.remove("hidden");
+        if (t.box) {
+          t.box.classList.remove("hidden");
+          t.box.style.display = "flex";
+        }
 
         if (activeTool === "signature") {
           openSignatureModal();
@@ -85,7 +92,38 @@
       });
     });
 
-    // 2. ปรับการรับ Event Mouse บนพื้นที่วาด (PDF Container)
+    // ปุ่มดูดสี (Eyedropper API)
+    if (pickColorBtn) {
+      pickColorBtn.addEventListener("click", async () => {
+        if (window.EyeDropper) {
+          try {
+            const eyeDropper = new EyeDropper();
+            const result = await eyeDropper.open();
+            if (result && result.sRGBHex) {
+              const whiteoutColorInput = document.getElementById("whiteoutColorInput");
+              if (whiteoutColorInput) whiteoutColorInput.value = result.sRGBHex;
+            }
+          } catch (e) {
+            console.log("EyeDropper canceled");
+          }
+        } else {
+          alert("เบราว์เซอร์ของคุณยังไม่รองรับเครื่องมือดูดสี สามารถคลิกเลือกสีจากช่อง Color Picker ได้ครับ");
+        }
+      });
+    }
+
+    // 2. ดึงค่าสีที่เลือกจริง ณ ขณะใช้งาน
+    function getSelectedWhiteoutColor() {
+      const el = document.getElementById("whiteoutColorInput");
+      return el ? el.value : "#ffffff";
+    }
+
+    function getSelectedHighlightColor() {
+      const checked = document.querySelector('input[name="hlColor"]:checked');
+      return checked ? checked.value : "rgba(255, 235, 59, 0.4)";
+    }
+
+    // 3. Event การวาดบนหน้า PDF
     pdfContainer.style.pointerEvents = "auto";
     overlayLayer.style.pointerEvents = "none";
 
@@ -127,9 +165,7 @@
         rectStartX = clickX;
         rectStartY = clickY;
 
-        const fillColor = activeTool === "whiteout" 
-          ? (document.getElementById("whiteoutColorInput") ? document.getElementById("whiteoutColorInput").value : "#ffffff")
-          : (document.getElementById("highlightColorSelect") ? document.getElementById("highlightColorSelect").value : "rgba(255, 235, 59, 0.4)");
+        const fillColor = activeTool === "whiteout" ? getSelectedWhiteoutColor() : getSelectedHighlightColor();
 
         if (activeRectPreview && activeRectPreview.parentNode) {
           activeRectPreview.parentNode.removeChild(activeRectPreview);
@@ -192,7 +228,7 @@
             y: top,
             width: width,
             height: height,
-            color: document.getElementById("whiteoutColorInput") ? document.getElementById("whiteoutColorInput").value : "#ffffff"
+            color: getSelectedWhiteoutColor()
           });
         } else if (activeTool === "highlight") {
           addAnnotation({
@@ -201,20 +237,32 @@
             y: top,
             width: width,
             height: height,
-            color: document.getElementById("highlightColorSelect") ? document.getElementById("highlightColorSelect").value : "rgba(255, 235, 59, 0.4)"
+            color: getSelectedHighlightColor()
           });
         }
       }
     });
 
-    // 3. Signature Pad Controller (วาดลายเซ็น)
+    // 4. การจัดการสีลายเซ็น (Signature Color Picker)
     let isSigning = false;
     const sigCtx = signatureCanvas.getContext("2d");
     sigCtx.lineWidth = 2.5;
 
-    if (signColorInput) {
-      signColorInput.addEventListener("change", (e) => {
-        sigCtx.strokeStyle = e.target.value;
+    document.querySelectorAll(".sign-color-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".sign-color-btn").forEach(b => b.style.borderColor = "transparent");
+        btn.style.borderColor = "#356ae6";
+        currentSignColor = btn.dataset.color;
+        sigCtx.strokeStyle = currentSignColor;
+      });
+    });
+
+    const customColorInput = document.getElementById("signColorCustom");
+    if (customColorInput) {
+      customColorInput.addEventListener("input", (e) => {
+        document.querySelectorAll(".sign-color-btn").forEach(b => b.style.borderColor = "transparent");
+        currentSignColor = e.target.value;
+        sigCtx.strokeStyle = currentSignColor;
       });
     }
 
@@ -228,7 +276,7 @@
     function startSign(e) { 
       e.preventDefault();
       isSigning = true; 
-      sigCtx.strokeStyle = signColorInput ? signColorInput.value : "#000000";
+      sigCtx.strokeStyle = currentSignColor;
       const p = getCanvasPos(e); 
       sigCtx.beginPath(); 
       sigCtx.moveTo(p.x, p.y); 
@@ -260,7 +308,7 @@
 
     function openSignatureModal() {
       sigCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-      sigCtx.strokeStyle = signColorInput ? signColorInput.value : "#000000";
+      sigCtx.strokeStyle = currentSignColor;
       signModal.classList.remove("hidden");
     }
 
@@ -331,7 +379,7 @@
       renderOverlayItems();
     }
 
-    // 4. แสดงผลการวางวัตถุ พร้อมปุ่มลบ (✕)
+    // 5. แสดงผลการวางวัตถุ
     function renderOverlayItems() {
       overlayLayer.innerHTML = "";
 
@@ -419,7 +467,7 @@
       return { r, g, b };
     }
 
-    // 5. ประมวลผลสร้างไฟล์ PDF ใหม่
+    // 6. ประมวลผลและสร้างไฟล์ PDF
     async function saveEditedPdf() {
       if (!currentFile) return;
 
