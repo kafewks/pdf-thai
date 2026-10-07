@@ -1,4 +1,4 @@
-// tools/edit.js - PDF Overlay Editor Engine (Color Selection & Palette Fixed)
+// tools/edit.js - Full Overlay PDF Editor Engine with Drag & Drop Re-positioning
 (function () {
   let currentFile = null;
   let pdfJsDoc = null;
@@ -13,6 +13,11 @@
   let isDrawingRect = false;
   let rectStartX = 0, rectStartY = 0;
   let activeRectPreview = null;
+
+  // Variables สำหรับระบบ Drag & Drop
+  let isDraggingItem = false;
+  let draggedItemIndex = null;
+  let dragOffsetX = 0, dragOffsetY = 0;
 
   window.initEditTool = function () {
     const input = document.getElementById("editFileInput");
@@ -52,7 +57,7 @@
       if (e.target.files && e.target.files[0]) loadPdf(e.target.files[0]);
     });
 
-    // 1. สลับโหมดเครื่องมือ พร้อมแสดง/ซ่อน กล่องเลือกสีอย่างถูกต้อง
+    // 1. สลับโหมดเครื่องมือ
     const tools = [
       { btn: toolTextBtn, mode: "text", box: textOptionsBox },
       { btn: toolWhiteoutBtn, mode: "whiteout", box: whiteoutOptionsBox },
@@ -112,7 +117,6 @@
       });
     }
 
-    // 2. ดึงค่าสีที่เลือกจริง ณ ขณะใช้งาน
     function getSelectedWhiteoutColor() {
       const el = document.getElementById("whiteoutColorInput");
       return el ? el.value : "#ffffff";
@@ -123,12 +127,12 @@
       return checked ? checked.value : "rgba(255, 235, 59, 0.4)";
     }
 
-    // 3. Event การวาดบนหน้า PDF
+    // 2. Event Mouse สำหรับวาดสร้างวัตถุ
     pdfContainer.style.pointerEvents = "auto";
     overlayLayer.style.pointerEvents = "none";
 
     pdfContainer.addEventListener("mousedown", (e) => {
-      if (!pdfJsDoc || e.target.classList.contains("del-btn")) return;
+      if (!pdfJsDoc || e.target.classList.contains("del-btn") || isDraggingItem) return;
 
       const rect = pdfContainer.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
@@ -186,64 +190,86 @@
     });
 
     window.addEventListener("mousemove", (e) => {
-      if (!isDrawingRect || !activeRectPreview) return;
-      const rect = pdfContainer.getBoundingClientRect();
-      const currentX = e.clientX - rect.left;
-      const currentY = e.clientY - rect.top;
+      // 2.1 กรณีลากวาดสี่เหลี่ยม
+      if (isDrawingRect && activeRectPreview) {
+        const rect = pdfContainer.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
 
-      const width = Math.abs(currentX - rectStartX);
-      const height = Math.abs(currentY - rectStartY);
-      const left = Math.min(rectStartX, currentX);
-      const top = Math.min(rectStartY, currentY);
+        const width = Math.abs(currentX - rectStartX);
+        const height = Math.abs(currentY - rectStartY);
+        const left = Math.min(rectStartX, currentX);
+        const top = Math.min(rectStartY, currentY);
 
-      activeRectPreview.style.left = `${left}px`;
-      activeRectPreview.style.top = `${top}px`;
-      activeRectPreview.style.width = `${width}px`;
-      activeRectPreview.style.height = `${height}px`;
-    });
-
-    window.addEventListener("mouseup", (e) => {
-      if (!isDrawingRect || !activeRectPreview) return;
-      isDrawingRect = false;
-
-      const rect = pdfContainer.getBoundingClientRect();
-      const currentX = e.clientX - rect.left;
-      const currentY = e.clientY - rect.top;
-
-      const width = Math.abs(currentX - rectStartX);
-      const height = Math.abs(currentY - rectStartY);
-      const left = Math.min(rectStartX, currentX);
-      const top = Math.min(rectStartY, currentY);
-
-      if (activeRectPreview && activeRectPreview.parentNode) {
-        activeRectPreview.parentNode.removeChild(activeRectPreview);
+        activeRectPreview.style.left = `${left}px`;
+        activeRectPreview.style.top = `${top}px`;
+        activeRectPreview.style.width = `${width}px`;
+        activeRectPreview.style.height = `${height}px`;
       }
-      activeRectPreview = null;
 
-      if (width > 5 && height > 5) {
-        if (activeTool === "whiteout") {
-          addAnnotation({
-            type: "whiteout",
-            x: left,
-            y: top,
-            width: width,
-            height: height,
-            color: getSelectedWhiteoutColor()
-          });
-        } else if (activeTool === "highlight") {
-          addAnnotation({
-            type: "highlight",
-            x: left,
-            y: top,
-            width: width,
-            height: height,
-            color: getSelectedHighlightColor()
-          });
+      // 2.2 กรณีเลื่อน/ขยับวัตถุ (Drag Item)
+      if (isDraggingItem && draggedItemIndex !== null) {
+        const rect = pdfContainer.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+
+        const currentAnns = annotationsByPage[currentPageNum] || [];
+        if (currentAnns[draggedItemIndex]) {
+          currentAnns[draggedItemIndex].x = currentX - dragOffsetX;
+          currentAnns[draggedItemIndex].y = currentY - dragOffsetY;
+          renderOverlayItems();
         }
       }
     });
 
-    // 4. การจัดการสีลายเซ็น (Signature Color Picker)
+    window.addEventListener("mouseup", (e) => {
+      if (isDraggingItem) {
+        isDraggingItem = false;
+        draggedItemIndex = null;
+      }
+
+      if (isDrawingRect && activeRectPreview) {
+        isDrawingRect = false;
+
+        const rect = pdfContainer.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+
+        const width = Math.abs(currentX - rectStartX);
+        const height = Math.abs(currentY - rectStartY);
+        const left = Math.min(rectStartX, currentX);
+        const top = Math.min(rectStartY, currentY);
+
+        if (activeRectPreview && activeRectPreview.parentNode) {
+          activeRectPreview.parentNode.removeChild(activeRectPreview);
+        }
+        activeRectPreview = null;
+
+        if (width > 5 && height > 5) {
+          if (activeTool === "whiteout") {
+            addAnnotation({
+              type: "whiteout",
+              x: left,
+              y: top,
+              width: width,
+              height: height,
+              color: getSelectedWhiteoutColor()
+            });
+          } else if (activeTool === "highlight") {
+            addAnnotation({
+              type: "highlight",
+              x: left,
+              y: top,
+              width: width,
+              height: height,
+              color: getSelectedHighlightColor()
+            });
+          }
+        }
+      }
+    });
+
+    // 3. Signature Pad Controller
     let isSigning = false;
     const sigCtx = signatureCanvas.getContext("2d");
     sigCtx.lineWidth = 2.5;
@@ -303,7 +329,7 @@
     useSignBtn.onclick = () => {
       currentSignatureDataUrl = signatureCanvas.toDataURL("image/png");
       signModal.classList.add("hidden");
-      updateStatus("สร้างลายเซ็นสำเร็จ! คลิกตรงจุดที่ต้องการวางลายเซ็นบน PDF", false, true);
+      updateStatus("สร้างลายเซ็นสำเร็จ! คลิกวางหรือลากขยับตำแหน่งบน PDF ได้เลย", false, true);
     };
 
     function openSignatureModal() {
@@ -379,7 +405,7 @@
       renderOverlayItems();
     }
 
-    // 5. แสดงผลการวางวัตถุ
+    // 4. แสดงผลวัตถุ + เพิ่มความสามารถในการเลื่อน/ขยับ (Drag & Drop)
     function renderOverlayItems() {
       overlayLayer.innerHTML = "";
 
@@ -391,12 +417,16 @@
         elem.style.top = `${ann.y}px`;
         elem.style.pointerEvents = "auto";
         elem.style.zIndex = "20";
+        elem.style.cursor = "move"; // เปลี่ยน Cursor เป็นรูปมือจับ
+        elem.style.userSelect = "none";
 
         if (ann.type === "text") {
           elem.style.fontSize = `${ann.size}px`;
           elem.style.color = ann.color;
           elem.style.fontWeight = "bold";
           elem.style.whiteSpace = "nowrap";
+          elem.style.padding = "2px 4px";
+          elem.style.border = "1px dashed transparent";
           elem.textContent = ann.text;
         } else if (ann.type === "whiteout") {
           elem.style.width = `${ann.width}px`;
@@ -407,14 +437,40 @@
           elem.style.width = `${ann.width}px`;
           elem.style.height = `${ann.height}px`;
           elem.style.background = ann.color || "rgba(255, 235, 59, 0.4)";
+          elem.style.border = "1px dashed transparent";
         } else if (ann.type === "image") {
           const img = document.createElement("img");
           img.src = ann.dataUrl;
           img.style.width = `${ann.width}px`;
           img.style.height = `${ann.height}px`;
+          img.style.pointerEvents = "none";
           elem.appendChild(img);
         }
 
+        // เอฟเฟกต์แสดงขอบเมื่อเอาเมาส์ไปชี้
+        elem.addEventListener("mouseenter", () => {
+          if (ann.type === "text" || ann.type === "highlight") elem.style.borderColor = "#356ae6";
+        });
+        elem.addEventListener("mouseleave", () => {
+          if (ann.type === "text" || ann.type === "highlight") elem.style.borderColor = "transparent";
+        });
+
+        // Event กดคลิกลากวัตถุเพื่อขยับตำแหน่ง
+        elem.addEventListener("mousedown", (e) => {
+          if (e.target.classList.contains("del-btn")) return;
+          e.stopPropagation();
+          isDraggingItem = true;
+          draggedItemIndex = index;
+
+          const rect = pdfContainer.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const clickY = e.clientY - rect.top;
+
+          dragOffsetX = clickX - ann.x;
+          dragOffsetY = clickY - ann.y;
+        });
+
+        // ปุ่มลบรายการ (✕)
         const delBtn = document.createElement("button");
         delBtn.type = "button";
         delBtn.className = "del-btn";
@@ -467,7 +523,7 @@
       return { r, g, b };
     }
 
-    // 6. ประมวลผลและสร้างไฟล์ PDF
+    // 5. ประมวลผลและสร้างไฟล์ PDF
     async function saveEditedPdf() {
       if (!currentFile) return;
 
