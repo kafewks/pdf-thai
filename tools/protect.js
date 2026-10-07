@@ -91,29 +91,40 @@
       }
 
       submitBtn.disabled = true;
-      updateStatus("กำลังใส่รหัสผ่านและเข้ารหัสไฟล์ PDF...");
+      updateStatus("กำลังสร้างและเข้ารหัสไฟล์ PDF...");
 
       try {
         const bytes = await currentFile.arrayBuffer();
-        const pdfDoc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+        const srcPdf = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+        
+        // สร้าง PDF เอกสารใหม่
+        const newPdf = await PDFLib.PDFDocument.create();
+        const indices = srcPdf.getPageIndices();
+        const copiedPages = await newPdf.copyPages(srcPdf, indices);
+        copiedPages.forEach((page) => newPdf.addPage(page));
 
-        // ตั้งรหัสผ่านสำหรับเปิดอ่านไฟล์
-        pdfDoc.encrypt({
-          userPassword: password,
-          ownerPassword: password,
-          permissions: {
-            printing: "highResolution",
-            modifying: false,
-            copying: false,
-            annotating: false
-          }
-        });
+        // ตรวจสอบว่ามีฟังก์ชัน encrypt หรือไม่ก่อนเรียกใช้
+        if (typeof newPdf.encrypt === "function") {
+          await newPdf.encrypt({
+            userPassword: password,
+            ownerPassword: password,
+            permissions: {
+              printing: "highResolution",
+              modifying: false,
+              copying: false,
+              annotating: false
+            }
+          });
+        } else {
+          // หากเบราว์เซอร์ไม่รองรับ Native Encryption ของ PDF-Lib ให้แจ้งเตือนผู้ใช้ชัดเจน
+          throw new Error("ไลบรารี PDF-Lib เวอร์ชัน CDN ปัจจุบันไม่รองรับการตั้งรหัสผ่านล็อกไฟล์บน Client-Side โดยตรง");
+        }
 
-        const protectedBytes = await pdfDoc.save();
+        const protectedBytes = await newPdf.save();
         downloadBlob(protectedBytes, `Feelgood_Protected_${getStamp()}.pdf`);
         updateStatus("ล็อกไฟล์ PDF ด้วยรหัสผ่านสำเร็จเรียบร้อย! ✓", false, true);
       } catch (err) {
-        updateStatus(`เกิดข้อผิดพลาดในการใส่รหัสผ่าน: ${err.message}`, true);
+        updateStatus(`เกิดข้อผิดพลาด: ${err.message}`, true);
       } finally {
         submitBtn.disabled = false;
       }
