@@ -10,6 +10,10 @@
   
   <meta name="description" content="รวม แยก หมุน ลบหน้า PDF ฟรีในเบราว์เซอร์ ใช้งานง่าย ไม่ต้องอัปโหลดขึ้นเซิร์ฟเวอร์ ปลอดภัย 100%">
   <link rel="stylesheet" href="style.css">
+  <!-- Google Fonts (Thai Collection) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600&family=Charm:wght@700&family=Prompt:wght@600&family=Sarabun:wght@600&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -451,13 +455,13 @@
           <input type="text" id="editTextInput" placeholder="พิมพ์ข้อความที่ต้องการใส่..." style="flex:1; min-width:150px; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
           
           <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ฟอนต์:
-            <select id="textFontSelect" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px;">
-              <option value="TH Sarabun PSK, Sarabun, sans-serif" selected>TH Sarabun (ทางการ)</option>
-              <option value="Prompt, sans-serif">Prompt (ทันสมัย)</option>
-              <option value="Krutdev, sans-serif">Krutdev (ราชการ)</option>
-              <option value="sans-serif">Sans-Serif (มาตรฐานระบบ)</option>
-            </select>
-          </label>
+  <select id="textFontSelect" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px;">
+    <option value="Sarabun, sans-serif" selected>Sarabun (มีหัว/ทางการ)</option>
+    <option value="Prompt, sans-serif">Prompt (ไม่มีหัว/โมเดิร์น)</option>
+    <option value="'Chakra Petch', sans-serif">Chakra Petch (เหลี่ยม/เทคโนโลยี)</option>
+    <option value="Charm, cursive">Charm (ตัวเขียน/ลายมือ)</option>
+  </select>
+</label>
 
           <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ขนาด:
             <input type="number" id="textSizeInput" value="16" min="8" max="72" style="width:55px; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">

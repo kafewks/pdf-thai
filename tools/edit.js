@@ -548,31 +548,33 @@
       });
     }
 
-    // แปลงข้อความภาษาไทยพร้อมฟอนต์เป็น PNG Image Canvas
-    function textToImageCanvas(text, size, colorHex, fontFamily) {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const fontStr = `bold ${size * 2}px ${fontFamily || 'sans-serif'}`;
-      ctx.font = fontStr;
+    // แปลงข้อความพร้อมฟอนต์ภาษาไทยเป็น Image Canvas
+function textToImageCanvas(text, size, colorHex, fontFamily) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  
+  // กำหนดฟอนต์ที่เลือก
+  const fontStr = `bold ${size * 2}px ${fontFamily || 'Sarabun, sans-serif'}`;
+  ctx.font = fontStr;
 
-      const metrics = ctx.measureText(text);
-      const width = metrics.width + 12;
-      const height = size * 2.5;
+  const metrics = ctx.measureText(text);
+  const width = metrics.width + 16;
+  const height = size * 2.8;
 
-      canvas.width = width;
-      canvas.height = height;
+  canvas.width = width;
+  canvas.height = height;
 
-      ctx.font = fontStr;
-      ctx.fillStyle = colorHex;
-      ctx.textBaseline = "top";
-      ctx.fillText(text, 5, 5);
+  ctx.font = fontStr;
+  ctx.fillStyle = colorHex;
+  ctx.textBaseline = "top";
+  ctx.fillText(text, 8, 8);
 
-      return {
-        dataUrl: canvas.toDataURL("image/png"),
-        width: width / 2,
-        height: height / 2
-      };
-    }
+  return {
+    dataUrl: canvas.toDataURL("image/png"),
+    width: width / 2,
+    height: height / 2
+  };
+}
 
     function hexToRgbRatio(hexStr) {
       let hex = hexStr.replace("#", "");
