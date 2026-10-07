@@ -25,8 +25,10 @@
   <a href="#rotate" class="nav-link" data-tool="rotate">หมุน/ลบหน้า</a>
   <a href="#split" class="nav-link" data-tool="split">แยก PDF</a>
   <a href="#img2pdf" class="nav-link" data-tool="img2pdf">แปลงรูปเป็น PDF</a>
-  <a href="#pdf2img" class="nav-link" data-tool="pdf2img">แปลง PDF เป็นรูป</a> <!-- << เพิ่มบรรทัดนี้ -->
+  <a href="#pdf2img" class="nav-link" data-tool="pdf2img">แปลง PDF เป็นรูป</a>
+  <a href="#protect" class="nav-link" data-tool="protect">ตั้งรหัสผ่าน PDF</a> <!-- << เพิ่มบรรทัดนี้ -->
 </nav>
+
     <div class="badge">🔒 ประมวลผลในเครื่อง</div>
   </header>
 
@@ -79,6 +81,13 @@
   <div class="tool-icon">📸</div>
   <h3>แปลง PDF เป็นรูปภาพ</h3>
   <p>แปลงหน้าเอกสาร PDF ให้เป็นไฟล์รูปภาพ JPG หรือ PNG คุณภาพสูง ดาวน์โหลดแยกหรือรวม ZIP ได้</p>
+  <span class="tool-btn">ใช้งาน</span>
+</a>
+
+<a href="#protect" class="tool-card">
+  <div class="tool-icon">🔐</div>
+  <h3>ตั้งรหัสผ่านล็อก PDF</h3>
+  <p>ใส่รหัสผ่านป้องกันการเปิดอ่านไฟล์ PDF เพิ่มความปลอดภัยให้เอกสารสำคัญของคุณ</p>
   <span class="tool-btn">ใช้งาน</span>
 </a>
       </div>
@@ -337,6 +346,61 @@
   </div>
 </section>
 
+<!-- ========================================== -->
+<!-- VIEW 6: เครื่องมือ ตั้งรหัสผ่านล็อก PDF (Protect PDF) -->
+<!-- ========================================== -->
+<section id="view-protect" class="view-section hidden">
+  <div class="hero">
+    <h1>ตั้งรหัสผ่านล็อกไฟล์ PDF</h1>
+    <p>ใส่รหัสผ่านปกป้องเอกสารสำคัญของคุณด้วยระบบการเข้ารหัสที่ปลอดภัย</p>
+  </div>
+
+  <div class="card">
+    <input id="protectFileInput" type="file" accept="application/pdf,.pdf" hidden>
+    <div class="drop" id="protectDropArea">
+      <div class="icon">🔐</div>
+      <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
+      <span>หรือ</span>
+      <span class="btn-choose">เลือกไฟล์ PDF (1 ไฟล์)</span>
+    </div>
+
+    <!-- โซนตั้งค่ารหัสผ่าน -->
+    <div id="protectWorkspace" class="workspace hidden">
+      <div class="workspace-toolbar">
+        <div class="file-info">
+          <span id="protectFileName" class="fname-title">filename.pdf</span>
+          <span id="protectPageCount" class="page-count-badge">0 หน้า</span>
+        </div>
+        <div class="global-actions">
+          <button type="button" id="protectCancelBtn" class="secondary-sm">เลือกไฟล์ใหม่</button>
+        </div>
+      </div>
+
+      <div style="margin: 20px 0; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <div style="margin-bottom: 16px;">
+          <label for="protectPassInput" style="display:block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #1e293b;">
+            กำหนดรหัสผ่าน (User Password):
+          </label>
+          <input type="password" id="protectPassInput" placeholder="กรอกรหัสผ่านสำหรับเปิดไฟล์" style="width:100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px;">
+        </div>
+
+        <div>
+          <label for="protectPassConfirmInput" style="display:block; font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #1e293b;">
+            ยืนยันรหัสผ่านอีกครั้ง:
+          </label>
+          <input type="password" id="protectPassConfirmInput" placeholder="กรอกรหัสผ่านซ้ำอีกครั้ง" style="width:100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px;">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="protectSubmitBtn" class="primary">ล็อกไฟล์และดาวน์โหลด PDF</button>
+      </div>
+    </div>
+
+    <div id="protectStatus" class="status"></div>
+  </div>
+</section>
+
     <!-- Ad Banner Bottom (แสดงก่อน Section ความปลอดภัย) -->
     <div class="ad-container ad-bottom">
       <!-- วางโค้ด <ins class="adsbygoogle"> จาก Google AdSense ที่นี่ -->
@@ -372,7 +436,8 @@
   <script src="tools/rotate.js"></script>
   <script src="tools/split.js"></script>
   <script src="tools/img2pdf.js"></script>
-  <script src="tools/pdf2img.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
+  <script src="tools/pdf2img.js"></script>
+  <script src="tools/protect.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
   <script src="app.js"></script>
 </body>
 </html>
