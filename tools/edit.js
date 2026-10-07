@@ -1,4 +1,4 @@
-// tools/edit.js - Full Overlay PDF Editor Engine
+// tools/edit.js - Fixed Overlay PDF Editor Engine
 (function () {
   let currentFile = null;
   let pdfJsDoc = null;
@@ -33,6 +33,7 @@
     const prevPageBtn = document.getElementById("prevPageBtn");
     const nextPageBtn = document.getElementById("nextPageBtn");
     const pdfContainer = document.getElementById("pdfViewContainer");
+    const overlayLayer = document.getElementById("overlayLayer");
 
     const signModal = document.getElementById("signModal");
     const signatureCanvas = document.getElementById("signatureCanvas");
@@ -50,7 +51,7 @@
       if (e.target.files && e.target.files[0]) loadPdf(e.target.files[0]);
     });
 
-    // สลับโหมดเครื่องมือ
+    // 1. ระบบสลับโหมดเครื่องมือ
     const tools = [
       { btn: toolTextBtn, mode: "text", box: textOptionsBox },
       { btn: toolWhiteoutBtn, mode: "whiteout", box: whiteoutOptionsBox },
@@ -59,9 +60,13 @@
     ];
 
     tools.forEach(t => {
-      t.btn.addEventListener("click", () => {
+      if (!t.btn) return;
+      t.btn.addEventListener("click", (e) => {
+        e.preventDefault();
         activeTool = t.mode;
+
         tools.forEach(x => {
+          if (!x.btn) return;
           x.btn.style.background = "#ffffff";
           x.btn.style.color = "#475569";
           x.btn.style.borderColor = "#cbd5e1";
@@ -74,13 +79,16 @@
 
         if (t.box) t.box.classList.remove("hidden");
 
-        if (activeTool === "signature" && !currentSignatureDataUrl) {
+        if (activeTool === "signature") {
           openSignatureModal();
         }
       });
     });
 
-    // Event วาง/วาดวัตถุ
+    // 2. ปรับการรับ Event Mouse บนพื้นที่วาด (PDF Container)
+    pdfContainer.style.pointerEvents = "auto";
+    overlayLayer.style.pointerEvents = "none";
+
     pdfContainer.addEventListener("mousedown", (e) => {
       if (!pdfJsDoc || e.target.classList.contains("del-btn")) return;
 
@@ -120,8 +128,12 @@
         rectStartY = clickY;
 
         const fillColor = activeTool === "whiteout" 
-          ? document.getElementById("whiteoutColorInput").value 
-          : document.getElementById("highlightColorSelect").value;
+          ? (document.getElementById("whiteoutColorInput") ? document.getElementById("whiteoutColorInput").value : "#ffffff")
+          : (document.getElementById("highlightColorSelect") ? document.getElementById("highlightColorSelect").value : "rgba(255, 235, 59, 0.4)");
+
+        if (activeRectPreview && activeRectPreview.parentNode) {
+          activeRectPreview.parentNode.removeChild(activeRectPreview);
+        }
 
         activeRectPreview = document.createElement("div");
         activeRectPreview.style.position = "absolute";
@@ -129,11 +141,15 @@
         activeRectPreview.style.background = fillColor;
         activeRectPreview.style.left = `${rectStartX}px`;
         activeRectPreview.style.top = `${rectStartY}px`;
+        activeRectPreview.style.width = "0px";
+        activeRectPreview.style.height = "0px";
+        activeRectPreview.style.zIndex = "15";
+        activeRectPreview.style.pointerEvents = "none";
         pdfContainer.appendChild(activeRectPreview);
       }
     });
 
-    pdfContainer.addEventListener("mousemove", (e) => {
+    window.addEventListener("mousemove", (e) => {
       if (!isDrawingRect || !activeRectPreview) return;
       const rect = pdfContainer.getBoundingClientRect();
       const currentX = e.clientX - rect.left;
@@ -150,7 +166,7 @@
       activeRectPreview.style.height = `${height}px`;
     });
 
-    pdfContainer.addEventListener("mouseup", (e) => {
+    window.addEventListener("mouseup", (e) => {
       if (!isDrawingRect || !activeRectPreview) return;
       isDrawingRect = false;
 
@@ -163,7 +179,7 @@
       const left = Math.min(rectStartX, currentX);
       const top = Math.min(rectStartY, currentY);
 
-      if (activeRectPreview.parentNode) {
+      if (activeRectPreview && activeRectPreview.parentNode) {
         activeRectPreview.parentNode.removeChild(activeRectPreview);
       }
       activeRectPreview = null;
@@ -176,7 +192,7 @@
             y: top,
             width: width,
             height: height,
-            color: document.getElementById("whiteoutColorInput").value
+            color: document.getElementById("whiteoutColorInput") ? document.getElementById("whiteoutColorInput").value : "#ffffff"
           });
         } else if (activeTool === "highlight") {
           addAnnotation({
@@ -185,20 +201,22 @@
             y: top,
             width: width,
             height: height,
-            color: document.getElementById("highlightColorSelect").value
+            color: document.getElementById("highlightColorSelect") ? document.getElementById("highlightColorSelect").value : "rgba(255, 235, 59, 0.4)"
           });
         }
       }
     });
 
-    // Signature Pad Controller
+    // 3. Signature Pad Controller (วาดลายเซ็น)
     let isSigning = false;
     const sigCtx = signatureCanvas.getContext("2d");
     sigCtx.lineWidth = 2.5;
 
-    signColorInput.addEventListener("change", (e) => {
-      sigCtx.strokeStyle = e.target.value;
-    });
+    if (signColorInput) {
+      signColorInput.addEventListener("change", (e) => {
+        sigCtx.strokeStyle = e.target.value;
+      });
+    }
 
     function getCanvasPos(e) {
       const rect = signatureCanvas.getBoundingClientRect();
@@ -208,20 +226,28 @@
     }
 
     function startSign(e) { 
+      e.preventDefault();
       isSigning = true; 
-      sigCtx.strokeStyle = signColorInput.value;
+      sigCtx.strokeStyle = signColorInput ? signColorInput.value : "#000000";
       const p = getCanvasPos(e); 
       sigCtx.beginPath(); 
       sigCtx.moveTo(p.x, p.y); 
     }
-    function moveSign(e) { if (!isSigning) return; const p = getCanvasPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); }
-    function endSign() { isSigning = false; }
+    function moveSign(e) { 
+      if (!isSigning) return; 
+      e.preventDefault();
+      const p = getCanvasPos(e); 
+      sigCtx.lineTo(p.x, p.y); 
+      sigCtx.stroke(); 
+    }
+    function endSign(e) { isSigning = false; }
 
     signatureCanvas.addEventListener("mousedown", startSign);
     signatureCanvas.addEventListener("mousemove", moveSign);
     window.addEventListener("mouseup", endSign);
-    signatureCanvas.addEventListener("touchstart", startSign);
-    signatureCanvas.addEventListener("touchmove", moveSign);
+
+    signatureCanvas.addEventListener("touchstart", startSign, { passive: false });
+    signatureCanvas.addEventListener("touchmove", moveSign, { passive: false });
     signatureCanvas.addEventListener("touchend", endSign);
 
     clearSignBtn.onclick = () => sigCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
@@ -229,12 +255,12 @@
     useSignBtn.onclick = () => {
       currentSignatureDataUrl = signatureCanvas.toDataURL("image/png");
       signModal.classList.add("hidden");
-      updateStatus("บันทึกลายเซ็นเรียบร้อย! คลิกตรงจุดที่ต้องการวางลายเซ็นบน PDF", false, true);
+      updateStatus("สร้างลายเซ็นสำเร็จ! คลิกตรงจุดที่ต้องการวางลายเซ็นบน PDF", false, true);
     };
 
     function openSignatureModal() {
       sigCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-      sigCtx.strokeStyle = signColorInput.value;
+      sigCtx.strokeStyle = signColorInput ? signColorInput.value : "#000000";
       signModal.classList.remove("hidden");
     }
 
@@ -305,9 +331,8 @@
       renderOverlayItems();
     }
 
-    // แสดงผลและแก้ปุ่มลบวัตถุ (✕) ให้คลิกได้ถูกต้อง
+    // 4. แสดงผลการวางวัตถุ พร้อมปุ่มลบ (✕)
     function renderOverlayItems() {
-      const overlayLayer = document.getElementById("overlayLayer");
       overlayLayer.innerHTML = "";
 
       const currentAnns = annotationsByPage[currentPageNum] || [];
@@ -342,7 +367,6 @@
           elem.appendChild(img);
         }
 
-        // ปุ่มลบรายการ (✕)
         const delBtn = document.createElement("button");
         delBtn.type = "button";
         delBtn.className = "del-btn";
@@ -361,7 +385,6 @@
       });
     }
 
-    // แปลงข้อความภาษาไทยเป็น PNG Image Canvas ก่อนเซฟลง PDF
     function textToImageCanvas(text, size, colorHex) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -396,6 +419,7 @@
       return { r, g, b };
     }
 
+    // 5. ประมวลผลสร้างไฟล์ PDF ใหม่
     async function saveEditedPdf() {
       if (!currentFile) return;
 
@@ -437,10 +461,10 @@
                 color: PDFLib.rgb(rgb.r, rgb.g, rgb.b)
               });
             } else if (ann.type === "highlight") {
-              let rgb = { r: 1, g: 0.92, b: 0.23 }; // ค่าเริ่มต้นสีเหลือง
-              if (ann.color.includes("76, 175, 80")) rgb = { r: 0.3, g: 0.69, b: 0.31 }; // เขียว
-              else if (ann.color.includes("33, 150, 243")) rgb = { r: 0.13, g: 0.59, b: 0.95 }; // ฟ้า
-              else if (ann.color.includes("233, 30, 99")) rgb = { r: 0.91, g: 0.12, b: 0.39 }; // ชมพู
+              let rgb = { r: 1, g: 0.92, b: 0.23 };
+              if (ann.color.includes("76, 175, 80")) rgb = { r: 0.3, g: 0.69, b: 0.31 };
+              else if (ann.color.includes("33, 150, 243")) rgb = { r: 0.13, g: 0.59, b: 0.95 };
+              else if (ann.color.includes("233, 30, 99")) rgb = { r: 0.91, g: 0.12, b: 0.39 };
 
               pdfPage.drawRectangle({
                 x: pdfX,
