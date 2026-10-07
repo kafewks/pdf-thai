@@ -10,43 +10,62 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener(eventName, e => e.preventDefault(), false);
   });
 
-  // 3. ระบบ Routing ผ่าน Hash URL
-  window.addEventListener("hashchange", handleRoute);
-  handleRoute(); // รันครั้งแรกเมื่อโหลดหน้าเว็บ
+  // 3. ผูก Event Listener สำหรับลิงก์เมนู และ การ์ดเครื่องมือ
+  document.querySelectorAll(".nav-link, .tool-card").forEach(link => {
+    link.addEventListener("click", (e) => {
+      const href = link.getAttribute("href");
+      if (href && href.startsWith("#")) {
+        const tool = href.replace("#", "").trim();
+        if (tool) {
+          window.location.hash = tool;
+        }
+      }
+    });
+  });
+
+  // 4. เรียกทำงาน Routing เมื่อโหลดหน้าครั้งแรก
+  handleRoute();
 });
 
 function handleRoute() {
   const rawHash = window.location.hash.replace("#", "").trim();
-  const validTools = ["hub", "merge", "rotate", "split", "img2pdf", "pdf2img", "protect"]; // << เพิ่ม "protect"
+  
+  // รายการ tools ทั้งหมดที่อนุญาต
+  const validTools = ["hub", "merge", "rotate", "split", "img2pdf", "pdf2img", "protect", "edit"];
   
   const hash = validTools.includes(rawHash) ? rawHash : "hub";
 
+  // ซ่อนทุก view section ก่อน
   document.querySelectorAll(".view-section").forEach(el => el.classList.add("hidden"));
 
+  // อัปเดตสถานะ active บนแถบเมนู Navigation
   document.querySelectorAll(".nav-link").forEach(link => {
-    link.classList.toggle("active", link.dataset.tool === hash);
+    const linkTool = link.dataset.tool || link.getAttribute("href")?.replace("#", "");
+    link.classList.toggle("active", linkTool === hash || (hash === "hub" && linkTool === ""));
   });
 
+  // แสดงหน้า View ที่เลือก
   const targetView = document.getElementById(`view-${hash}`) || document.getElementById("view-hub");
-  targetView.classList.remove("hidden");
+  if (targetView) {
+    targetView.classList.remove("hidden");
+  }
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // Initialize Tools
+  // เรียกใช้งานฟังก์ชันเริ่มต้นของแต่ละเครื่องมือ
   if (hash === "merge" && typeof window.initMergeTool === "function") window.initMergeTool();
   if (hash === "rotate" && typeof window.initRotateTool === "function") window.initRotateTool();
   if (hash === "split" && typeof window.initSplitTool === "function") window.initSplitTool();
   if (hash === "img2pdf" && typeof window.initImg2PdfTool === "function") window.initImg2PdfTool();
   if (hash === "pdf2img" && typeof window.initPdf2ImgTool === "function") window.initPdf2ImgTool();
-  if (hash === "protect" && typeof window.initProtectTool === "function") window.initProtectTool(); // << เพิ่มบรรทัดนี้
+  if (hash === "protect" && typeof window.initProtectTool === "function") window.initProtectTool();
   if (hash === "edit" && typeof window.initEditTool === "function") window.initEditTool();
 }
 
+// ผูก Event Listener สำหรับ Hash Change
+window.addEventListener("hashchange", handleRoute);
+
 /**
  * แสดงข้อความแจ้งสถานะ (Status / Toast Message)
- * @param {HTMLElement} el Element แสดงผล
- * @param {string} text ข้อความที่ต้องการแสดง
- * @param {boolean} isError สถานะข้อผิดพลาด (สีแดง)
- * @param {boolean} isSuccess สถานะสำเร็จ (สีเขียว)
  */
 function showStatus(el, text, isError = false, isSuccess = false) {
   if (!el) return;
@@ -55,7 +74,7 @@ function showStatus(el, text, isError = false, isSuccess = false) {
 }
 
 /**
- * สุ่มหรือแปลงวันที่เป็น Format YYYYMMDD สำหรับตั้งชื่อไฟล์ดาวน์โหลด
+ * แปลงวันที่เป็น Format YYYYMMDD สำหรับตั้งชื่อไฟล์ดาวน์โหลด
  */
 function dateStamp() {
   const d = new Date();
