@@ -409,11 +409,11 @@
   </div>
 </section>
 
-<!-- VIEW 7: เครื่องมือ แก้ไข PDF (Overlay Editor with Resize & Drag) -->
+<!-- VIEW 7: เครื่องมือ แก้ไข PDF (Overlay Editor with Hover Controls & Font Selector) -->
 <section id="view-edit" class="view-section hidden">
   <div class="hero">
     <h1>แก้ไข PDF (ข้อความ / ลบเนียน / ไฮไลต์ / ลายเซ็น)</h1>
-    <p>เลือกเครื่องมือ ลากวาง ขยับย้าย หรือย่อ-ขยายขนาดบนหน้าเอกสารได้ตามต้องการ</p>
+    <p>เลือกเครื่องมือ ปรับสี ปรับฟอนต์ ลากวาง ขยับย้าย หรือย่อ-ขยายขนาดได้ตามต้องการ</p>
   </div>
 
   <div class="card">
@@ -446,12 +446,23 @@
           <button type="button" id="toolSignBtn" class="secondary-sm">✍️ ลายเซ็น</button>
         </div>
 
-        <!-- Option สำหรับโหมด ข้อความ -->
+        <!-- Option สำหรับโหมด ข้อความ (เพิ่มตัวเลือกฟอนต์) -->
         <div id="textOptionsBox" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
           <input type="text" id="editTextInput" placeholder="พิมพ์ข้อความที่ต้องการใส่..." style="flex:1; min-width:150px; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
-          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ขนาดเริ่มต้น:
+          
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ฟอนต์:
+            <select id="textFontSelect" style="padding:4px 8px; border-radius:6px; border:1px solid #cbd5e1; font-size:13px;">
+              <option value="TH Sarabun PSK, Sarabun, sans-serif" selected>TH Sarabun (ทางการ)</option>
+              <option value="Prompt, sans-serif">Prompt (ทันสมัย)</option>
+              <option value="Krutdev, sans-serif">Krutdev (ราชการ)</option>
+              <option value="sans-serif">Sans-Serif (มาตรฐานระบบ)</option>
+            </select>
+          </label>
+
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ขนาด:
             <input type="number" id="textSizeInput" value="16" min="8" max="72" style="width:55px; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
           </label>
+          
           <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">สีข้อความ:
             <input type="color" id="textColorInput" value="#000000" style="width:32px; height:28px; border:none; cursor:pointer;">
           </label>
