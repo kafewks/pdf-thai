@@ -1,4 +1,4 @@
-// tools/edit.js - Full Overlay PDF Editor Engine with Drag & Drop Re-positioning
+// tools/edit.js - Full Overlay PDF Editor Engine with Drag & Resize
 (function () {
   let currentFile = null;
   let pdfJsDoc = null;
@@ -14,10 +14,13 @@
   let rectStartX = 0, rectStartY = 0;
   let activeRectPreview = null;
 
-  // Variables สำหรับระบบ Drag & Drop
+  // Variables สำหรับระบบ Drag & Resize
   let isDraggingItem = false;
-  let draggedItemIndex = null;
+  let isResizingItem = false;
+  let activeItemIndex = null;
   let dragOffsetX = 0, dragOffsetY = 0;
+  let resizeStartX = 0, resizeStartY = 0;
+  let startWidth = 0, startHeight = 0, startSize = 16;
 
   window.initEditTool = function () {
     const input = document.getElementById("editFileInput");
@@ -97,7 +100,7 @@
       });
     });
 
-    // ปุ่มดูดสี (Eyedropper API)
+    // ปุ่มดูดสี
     if (pickColorBtn) {
       pickColorBtn.addEventListener("click", async () => {
         if (window.EyeDropper) {
@@ -127,12 +130,12 @@
       return checked ? checked.value : "rgba(255, 235, 59, 0.4)";
     }
 
-    // 2. Event Mouse สำหรับวาดสร้างวัตถุ
+    // 2. Event Mouse การเพิ่มและสร้างวัตถุ
     pdfContainer.style.pointerEvents = "auto";
     overlayLayer.style.pointerEvents = "none";
 
     pdfContainer.addEventListener("mousedown", (e) => {
-      if (!pdfJsDoc || e.target.classList.contains("del-btn") || isDraggingItem) return;
+      if (!pdfJsDoc || e.target.classList.contains("del-btn") || e.target.classList.contains("resize-handle") || isDraggingItem || isResizingItem) return;
 
       const rect = pdfContainer.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
@@ -190,7 +193,7 @@
     });
 
     window.addEventListener("mousemove", (e) => {
-      // 2.1 กรณีลากวาดสี่เหลี่ยม
+      // ลากวาดสี่เหลี่ยมสร้างใหม่
       if (isDrawingRect && activeRectPreview) {
         const rect = pdfContainer.getBoundingClientRect();
         const currentX = e.clientX - rect.left;
@@ -207,33 +210,55 @@
         activeRectPreview.style.height = `${height}px`;
       }
 
-      // 2.2 กรณีเลื่อน/ขยับวัตถุ (Drag Item)
-      if (isDraggingItem && draggedItemIndex !== null) {
+      // เลื่อนขยับตำแหน่ง (Drag)
+      if (isDraggingItem && activeItemIndex !== null) {
         const rect = pdfContainer.getBoundingClientRect();
         const currentX = e.clientX - rect.left;
         const currentY = e.clientY - rect.top;
 
         const currentAnns = annotationsByPage[currentPageNum] || [];
-        if (currentAnns[draggedItemIndex]) {
-          currentAnns[draggedItemIndex].x = currentX - dragOffsetX;
-          currentAnns[draggedItemIndex].y = currentY - dragOffsetY;
+        if (currentAnns[activeItemIndex]) {
+          currentAnns[activeItemIndex].x = currentX - dragOffsetX;
+          currentAnns[activeItemIndex].y = currentY - dragOffsetY;
+          renderOverlayItems();
+        }
+      }
+
+      // ย่อ-ขยายขนาด (Resize)
+      if (isResizingItem && activeItemIndex !== null) {
+        const currentAnns = annotationsByPage[currentPageNum] || [];
+        const ann = currentAnns[activeItemIndex];
+        if (ann) {
+          const deltaX = e.clientX - resizeStartX;
+          const deltaY = e.clientY - resizeStartY;
+
+          if (ann.type === "text") {
+            const newSize = Math.max(10, startSize + Math.round(deltaX / 3));
+            ann.size = newSize;
+          } else {
+            const newW = Math.max(20, startWidth + deltaX);
+            const newH = Math.max(15, startHeight + deltaY);
+            ann.width = newW;
+            ann.height = newH;
+          }
           renderOverlayItems();
         }
       }
     });
 
-    window.addEventListener("mouseup", (e) => {
-      if (isDraggingItem) {
+    window.addEventListener("mouseup", () => {
+      if (isDraggingItem || isResizingItem) {
         isDraggingItem = false;
-        draggedItemIndex = null;
+        isResizingItem = false;
+        activeItemIndex = null;
       }
 
       if (isDrawingRect && activeRectPreview) {
         isDrawingRect = false;
 
         const rect = pdfContainer.getBoundingClientRect();
-        const currentX = e.clientX - rect.left;
-        const currentY = e.clientY - rect.top;
+        const currentX = event.clientX - rect.left;
+        const currentY = event.clientY - rect.top;
 
         const width = Math.abs(currentX - rectStartX);
         const height = Math.abs(currentY - rectStartY);
@@ -314,7 +339,7 @@
       sigCtx.lineTo(p.x, p.y); 
       sigCtx.stroke(); 
     }
-    function endSign(e) { isSigning = false; }
+    function endSign() { isSigning = false; }
 
     signatureCanvas.addEventListener("mousedown", startSign);
     signatureCanvas.addEventListener("mousemove", moveSign);
@@ -329,7 +354,7 @@
     useSignBtn.onclick = () => {
       currentSignatureDataUrl = signatureCanvas.toDataURL("image/png");
       signModal.classList.add("hidden");
-      updateStatus("สร้างลายเซ็นสำเร็จ! คลิกวางหรือลากขยับตำแหน่งบน PDF ได้เลย", false, true);
+      updateStatus("สร้างลายเซ็นสำเร็จ! คลิกวาง ขยับ หรือย่อ-ขยายบน PDF ได้เลย", false, true);
     };
 
     function openSignatureModal() {
@@ -405,7 +430,7 @@
       renderOverlayItems();
     }
 
-    // 4. แสดงผลวัตถุ + เพิ่มความสามารถในการเลื่อน/ขยับ (Drag & Drop)
+    // 4. แสดงผลวัตถุ + ปุ่มลบ (✕) + จุดดึงขยายมุม (Resize Handle)
     function renderOverlayItems() {
       overlayLayer.innerHTML = "";
 
@@ -417,7 +442,7 @@
         elem.style.top = `${ann.y}px`;
         elem.style.pointerEvents = "auto";
         elem.style.zIndex = "20";
-        elem.style.cursor = "move"; // เปลี่ยน Cursor เป็นรูปมือจับ
+        elem.style.cursor = "move";
         elem.style.userSelect = "none";
 
         if (ann.type === "text") {
@@ -426,7 +451,7 @@
           elem.style.fontWeight = "bold";
           elem.style.whiteSpace = "nowrap";
           elem.style.padding = "2px 4px";
-          elem.style.border = "1px dashed transparent";
+          elem.style.border = "1px dashed #cbd5e1";
           elem.textContent = ann.text;
         } else if (ann.type === "whiteout") {
           elem.style.width = `${ann.width}px`;
@@ -437,30 +462,26 @@
           elem.style.width = `${ann.width}px`;
           elem.style.height = `${ann.height}px`;
           elem.style.background = ann.color || "rgba(255, 235, 59, 0.4)";
-          elem.style.border = "1px dashed transparent";
+          elem.style.border = "1px dashed #cbd5e1";
         } else if (ann.type === "image") {
+          elem.style.width = `${ann.width}px`;
+          elem.style.height = `${ann.height}px`;
+          elem.style.border = "1px dashed #cbd5e1";
+
           const img = document.createElement("img");
           img.src = ann.dataUrl;
-          img.style.width = `${ann.width}px`;
-          img.style.height = `${ann.height}px`;
+          img.style.width = "100%";
+          img.style.height = "100%";
           img.style.pointerEvents = "none";
           elem.appendChild(img);
         }
 
-        // เอฟเฟกต์แสดงขอบเมื่อเอาเมาส์ไปชี้
-        elem.addEventListener("mouseenter", () => {
-          if (ann.type === "text" || ann.type === "highlight") elem.style.borderColor = "#356ae6";
-        });
-        elem.addEventListener("mouseleave", () => {
-          if (ann.type === "text" || ann.type === "highlight") elem.style.borderColor = "transparent";
-        });
-
-        // Event กดคลิกลากวัตถุเพื่อขยับตำแหน่ง
+        // Event กดคลิกลากย้ายวัตถุ
         elem.addEventListener("mousedown", (e) => {
-          if (e.target.classList.contains("del-btn")) return;
+          if (e.target.classList.contains("del-btn") || e.target.classList.contains("resize-handle")) return;
           e.stopPropagation();
           isDraggingItem = true;
-          draggedItemIndex = index;
+          activeItemIndex = index;
 
           const rect = pdfContainer.getBoundingClientRect();
           const clickX = e.clientX - rect.left;
@@ -468,6 +489,23 @@
 
           dragOffsetX = clickX - ann.x;
           dragOffsetY = clickY - ann.y;
+        });
+
+        // จุดย่อ-ขยายมุมขวาใต้ (Resize Handle)
+        const resizeHandle = document.createElement("div");
+        resizeHandle.className = "resize-handle";
+        resizeHandle.style.cssText = "position:absolute; bottom:-6px; right:-6px; width:12px; height:12px; background:#356ae6; border:2px solid #fff; border-radius:2px; cursor:nwse-resize; z-index:30;";
+
+        resizeHandle.addEventListener("mousedown", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          isResizingItem = true;
+          activeItemIndex = index;
+          resizeStartX = e.clientX;
+          resizeStartY = e.clientY;
+          startWidth = ann.width || 0;
+          startHeight = ann.height || 0;
+          startSize = ann.size || 16;
         });
 
         // ปุ่มลบรายการ (✕)
@@ -484,6 +522,7 @@
           renderOverlayItems();
         };
 
+        elem.appendChild(resizeHandle);
         elem.appendChild(delBtn);
         overlayLayer.appendChild(elem);
       });

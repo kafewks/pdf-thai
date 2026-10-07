@@ -409,11 +409,11 @@
   </div>
 </section>
 
-<!-- VIEW 7: เครื่องมือ แก้ไข PDF (Overlay Editor) -->
+<!-- VIEW 7: เครื่องมือ แก้ไข PDF (Overlay Editor with Resize & Drag) -->
 <section id="view-edit" class="view-section hidden">
   <div class="hero">
     <h1>แก้ไข PDF (ข้อความ / ลบเนียน / ไฮไลต์ / ลายเซ็น)</h1>
-    <p>เลือกเครื่องมือ ปรับสี ปรับขนาด แล้วลากวางหรือวาดบนหน้าเอกสารได้ทันที</p>
+    <p>เลือกเครื่องมือ ลากวาง ขยับย้าย หรือย่อ-ขยายขนาดบนหน้าเอกสารได้ตามต้องการ</p>
   </div>
 
   <div class="card">
@@ -449,7 +449,7 @@
         <!-- Option สำหรับโหมด ข้อความ -->
         <div id="textOptionsBox" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
           <input type="text" id="editTextInput" placeholder="พิมพ์ข้อความที่ต้องการใส่..." style="flex:1; min-width:150px; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
-          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ขนาด:
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ขนาดเริ่มต้น:
             <input type="number" id="textSizeInput" value="16" min="8" max="72" style="width:55px; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
           </label>
           <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">สีข้อความ:
@@ -457,16 +457,15 @@
           </label>
         </div>
 
-        <!-- Option สำหรับโหมด ลบเนียน (Whiteout Options + ดูดสี) -->
+        <!-- Option สำหรับโหมด ลบเนียน -->
         <div id="whiteoutOptionsBox" class="hidden" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
           <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:6px;">เลือกสีถมลบ:
             <input type="color" id="whiteoutColorInput" value="#ffffff" style="width:32px; height:28px; border:none; cursor:pointer;">
           </label>
           <button type="button" id="pickColorBtn" class="secondary-sm" style="font-size:12px; padding:4px 8px;">💧 ดูดสีจากหน้ากระดาษ</button>
-          <span style="font-size:12px; color:#64748b;">(ลากเมาส์สร้างกรอบสี่เหลี่ยมถมทับข้อความเดิม)</span>
         </div>
 
-        <!-- Option สำหรับโหมด ไฮไลต์ (Highlight Palette) -->
+        <!-- Option สำหรับโหมด ไฮไลต์ -->
         <div id="highlightOptionsBox" class="hidden" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
           <span style="font-size:12px; font-weight:600;">เลือกสีไฮไลต์:</span>
           <div style="display:flex; gap:8px; align-items:center;">
