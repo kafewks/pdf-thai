@@ -1,4 +1,4 @@
-// tools/protect.js - PDF Protection Engine
+// tools/protect.js - PDF Protection Engine (Powered by jsPDF)
 (function () {
   let currentFile = null;
 
@@ -91,55 +91,69 @@
       }
 
       submitBtn.disabled = true;
-      updateStatus("กำลังสร้างและเข้ารหัสไฟล์ PDF...");
+      updateStatus("กำลังใส่รหัสผ่านและเข้ารหัสไฟล์ PDF...");
 
       try {
-        const bytes = await currentFile.arrayBuffer();
-        const srcPdf = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+        const arrayBuffer = await currentFile.arrayBuffer();
         
-        // สร้าง PDF เอกสารใหม่
-        const newPdf = await PDFLib.PDFDocument.create();
-        const indices = srcPdf.getPageIndices();
-        const copiedPages = await newPdf.copyPages(srcPdf, indices);
-        copiedPages.forEach((page) => newPdf.addPage(page));
+        // 1. อ่านหน้าไฟล์ PDF ด้วย PDF.js
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdfJsDoc = await loadingTask.promise;
+        const totalPages = pdfJsDoc.numPages;
 
-        // ตรวจสอบว่ามีฟังก์ชัน encrypt หรือไม่ก่อนเรียกใช้
-        if (typeof newPdf.encrypt === "function") {
-          await newPdf.encrypt({
-            userPassword: password,
-            ownerPassword: password,
-            permissions: {
-              printing: "highResolution",
-              modifying: false,
-              copying: false,
-              annotating: false
-            }
-          });
-        } else {
-          // หากเบราว์เซอร์ไม่รองรับ Native Encryption ของ PDF-Lib ให้แจ้งเตือนผู้ใช้ชัดเจน
-          throw new Error("ไลบรารี PDF-Lib เวอร์ชัน CDN ปัจจุบันไม่รองรับการตั้งรหัสผ่านล็อกไฟล์บน Client-Side โดยตรง");
+        const { jsPDF } = window.jspdf;
+        let doc = null;
+
+        // 2. วนลูปสร้าง PDF ใหม่ทีละหน้าพร้อมตั้งค่า Encryption
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+          const page = await pdfJsDoc.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 2.0 });
+
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          await page.render({ canvasContext: context, viewport: viewport }).promise;
+          const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+          const orientation = viewport.width > viewport.height ? "l" : "p";
+          
+          if (pageNum === 1) {
+            doc = new jsPDF({
+              orientation: orientation,
+              unit: "px",
+              format: [viewport.width, viewport.height],
+              encryption: {
+                userPassword: password,
+                ownerPassword: password,
+                userPermissions: ["print", "modify", "copy", "annot-forms"]
+              }
+            });
+            doc.addImage(imgData, "JPEG", 0, 0, viewport.width, viewport.height);
+          } else {
+            doc.addPage([viewport.width, viewport.height], orientation);
+            doc.addImage(imgData, "JPEG", 0, 0, viewport.width, viewport.height);
+          }
         }
 
-        const protectedBytes = await newPdf.save();
-        downloadBlob(protectedBytes, `Feelgood_Protected_${getStamp()}.pdf`);
+        // 3. บันทึกและดาวน์โหลดไฟล์ที่ล็อกรหัสผ่านแล้ว
+        const pdfBlob = doc.output("blob");
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Feelgood_Protected_${getStamp()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+
         updateStatus("ล็อกไฟล์ PDF ด้วยรหัสผ่านสำเร็จเรียบร้อย! ✓", false, true);
       } catch (err) {
-        updateStatus(`เกิดข้อผิดพลาด: ${err.message}`, true);
+        updateStatus(`เกิดข้อผิดพลาดในการใส่รหัสผ่าน: ${err.message}`, true);
       } finally {
         submitBtn.disabled = false;
       }
-    }
-
-    function downloadBlob(bytes, filename) {
-      const blob = new Blob([bytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
     }
 
     function resetWorkspace() {
