@@ -26,7 +26,8 @@
   <a href="#split" class="nav-link" data-tool="split">แยก PDF</a>
   <a href="#img2pdf" class="nav-link" data-tool="img2pdf">แปลงรูปเป็น PDF</a>
   <a href="#pdf2img" class="nav-link" data-tool="pdf2img">แปลง PDF เป็นรูป</a>
-  <a href="#protect" class="nav-link" data-tool="protect">ตั้งรหัสผ่าน PDF</a> <!-- << เพิ่มบรรทัดนี้ -->
+  <a href="#protect" class="nav-link" data-tool="protect">ตั้งรหัสผ่าน PDF</a> 
+  <a href="#edit" class="nav-link" data-tool="edit">แก้ไข PDF</a> <!-- << เพิ่มบรรทัดนี้ -->
 </nav>
 
     <div class="badge">🔒 ประมวลผลในเครื่อง</div>
@@ -88,6 +89,13 @@
   <div class="tool-icon">🔐</div>
   <h3>ตั้งรหัสผ่านล็อก PDF</h3>
   <p>ใส่รหัสผ่านป้องกันการเปิดอ่านไฟล์ PDF เพิ่มความปลอดภัยให้เอกสารสำคัญของคุณ</p>
+  <span class="tool-btn">ใช้งาน</span>
+</a>
+
+<a href="#edit" class="tool-card">
+  <div class="tool-icon">✏️</div>
+  <h3>แก้ไข PDF</h3>
+  <p>เพิ่มข้อความ ถมลบข้อความเดิม ไฮไลต์ หรือประทับลายเซ็นลงบน PDF</p>
   <span class="tool-btn">ใช้งาน</span>
 </a>
       </div>
@@ -401,6 +409,97 @@
   </div>
 </section>
 
+<!-- ========================================== -->
+<!-- VIEW 7: เครื่องมือ แก้ไข PDF (Overlay Editor) -->
+<!-- ========================================== -->
+<section id="view-edit" class="view-section hidden">
+  <div class="hero">
+    <h1>แก้ไข PDF (เพิ่มข้อความ / ถมลบ / ลายเซ็น / ไฮไลต์)</h1>
+    <p>เลือกเครื่องมือ ลากวางบนหน้าเอกสาร และบันทึกเป็น PDF ใหม่ได้ทันที</p>
+  </div>
+
+  <div class="card">
+    <input id="editFileInput" type="file" accept="application/pdf,.pdf" hidden>
+    <div class="drop" id="editDropArea">
+      <div class="icon">✏️</div>
+      <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
+      <span>หรือ</span>
+      <span class="btn-choose">เลือกไฟล์ PDF (1 ไฟล์)</span>
+    </div>
+
+    <div id="editWorkspace" class="workspace hidden">
+      <!-- Toolbar เครื่องมือแก้ไข -->
+      <div class="workspace-toolbar" style="flex-direction:column; align-items:stretch; gap:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="file-info">
+            <span id="editFileName" class="fname-title">filename.pdf</span>
+            <span id="editPageInfo" class="page-count-badge">หน้า 1/1</span>
+          </div>
+          <div>
+            <button type="button" id="editCancelBtn" class="secondary-sm">เลือกไฟล์ใหม่</button>
+          </div>
+        </div>
+
+        <!-- แถบเลือกโหมดเครื่องมือ -->
+        <div style="display:flex; gap:8px; flex-wrap:wrap; background:#f1f5f9; padding:8px; border-radius:10px; align-items:center;">
+          <button type="button" id="toolTextBtn" class="secondary-sm active-tool" style="background:#356ae6; color:#fff; border-color:#356ae6;">💬 ข้อความ</button>
+          <button type="button" id="toolWhiteoutBtn" class="secondary-sm">⬜ ลบเนียน (Whiteout)</button>
+          <button type="button" id="toolHighlightBtn" class="secondary-sm">🟨 ไฮไลต์</button>
+          <button type="button" id="toolSignBtn" class="secondary-sm">✍️ ลายเซ็น</button>
+        </div>
+
+        <!-- ตัวเลือกเพิ่มเติมตามโหมด -->
+        <div id="textOptionsBox" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#fff; padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
+          <input type="text" id="editTextInput" placeholder="พิมพ์ข้อความที่ต้องการใส่..." style="flex:1; min-width:150px; padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px;">
+          <label style="font-size:12px; font-weight:600;">ขนาด:
+            <input type="number" id="textSizeInput" value="16" min="8" max="72" style="width:55px; padding:4px; border:1px solid #cbd5e1; border-radius:4px;">
+          </label>
+          <label style="font-size:12px; font-weight:600;">สี:
+            <input type="color" id="textColorInput" value="#000000" style="width:32px; height:28px; border:none; cursor:pointer;">
+          </label>
+        </div>
+      </div>
+
+      <!-- คอนเทนเนอร์แสดงหน้ากระดาษ PDF (จุดลากวาง/วาด) -->
+      <div style="display:flex; justify-content:center; margin:16px 0;">
+        <div id="pdfViewContainer" style="position:relative; display:inline-block; border:1px solid #cbd5e1; box-shadow:0 4px 10px rgba(0,0,0,0.1); background:#fff; cursor:crosshair; user-select:none;">
+          <canvas id="pdfCanvas"></canvas>
+          <!-- Overlay Layer สำหรับแสดงวัตถุที่เพิ่มเข้าไป -->
+          <div id="overlayLayer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;"></div>
+        </div>
+      </div>
+
+      <!-- แถบเปลี่ยนหน้า PDF -->
+      <div style="display:flex; justify-content:center; align-items:center; gap:12px; margin-bottom:16px;">
+        <button type="button" id="prevPageBtn" class="secondary-sm">‹ หน้าก่อนหน้า</button>
+        <span id="pageNavText" style="font-size:13px; font-weight:600; color:#475569;">หน้า 1</span>
+        <button type="button" id="nextPageBtn" class="secondary-sm">หน้าถัดไป ›</button>
+      </div>
+
+      <div class="actions">
+        <button id="editSaveBtn" class="primary">บันทึก PDF ที่แก้ไข</button>
+      </div>
+    </div>
+
+    <div id="editStatus" class="status"></div>
+  </div>
+
+  <!-- Popup Modal สำหรับวาดลายเซ็น -->
+  <div id="signModal" class="hidden" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; z-index:1000;">
+    <div style="background:#fff; padding:20px; border-radius:16px; width:90%; max-width:400px; text-align:center; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+      <h3 style="margin-bottom:12px; font-size:16px;">วาดลายเซ็นของคุณ</h3>
+      <canvas id="signatureCanvas" width="350" height="150" style="border:1px dashed #cbd5e1; border-radius:8px; background:#f8fafc; cursor:crosshair; touch-action:none;"></canvas>
+      <div style="display:flex; justify-content:space-between; margin-top:16px; gap:8px;">
+        <button type="button" id="clearSignBtn" class="secondary-sm">ล้างวาดใหม่</button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" id="cancelSignBtn" class="secondary-sm">ยกเลิก</button>
+          <button type="button" id="useSignBtn" class="primary" style="padding:6px 14px; font-size:12px;">ตกลงใช้ลายเซ็น</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
     <!-- Ad Banner Bottom (แสดงก่อน Section ความปลอดภัย) -->
     <div class="ad-container ad-bottom">
       <!-- วางโค้ด <ins class="adsbygoogle"> จาก Google AdSense ที่นี่ -->
@@ -439,6 +538,7 @@
   <script src="tools/img2pdf.js"></script>
   <script src="tools/pdf2img.js"></script>
   <script src="tools/protect.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
+  <script src="tools/edit.js"></script>
   <script src="app.js"></script>
 
 

@@ -38,6 +38,7 @@ function handleRoute() {
   if (hash === "img2pdf" && typeof window.initImg2PdfTool === "function") window.initImg2PdfTool();
   if (hash === "pdf2img" && typeof window.initPdf2ImgTool === "function") window.initPdf2ImgTool();
   if (hash === "protect" && typeof window.initProtectTool === "function") window.initProtectTool(); // << เพิ่มบรรทัดนี้
+  if (hash === "edit" && typeof window.initEditTool === "function") window.initEditTool();
 }
 
 /**
