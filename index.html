@@ -24,7 +24,8 @@
   <a href="#merge" class="nav-link" data-tool="merge">รวม PDF</a>
   <a href="#rotate" class="nav-link" data-tool="rotate">หมุน/ลบหน้า</a>
   <a href="#split" class="nav-link" data-tool="split">แยก PDF</a>
-  <a href="#img2pdf" class="nav-link" data-tool="img2pdf">แปลงรูปเป็น PDF</a> <!-- << เพิ่มบรรทัดนี้ -->
+  <a href="#img2pdf" class="nav-link" data-tool="img2pdf">แปลงรูปเป็น PDF</a>
+  <a href="#pdf2img" class="nav-link" data-tool="pdf2img">แปลง PDF เป็นรูป</a> <!-- << เพิ่มบรรทัดนี้ -->
 </nav>
     <div class="badge">🔒 ประมวลผลในเครื่อง</div>
   </header>
@@ -71,6 +72,13 @@
   <div class="tool-icon">🖼️</div>
   <h3>แปลงรูปภาพเป็น PDF</h3>
   <p>แปลงรูปถ่าย JPG, PNG หรือ WebP เป็นไฟล์ PDF จัดเรียงลำดับได้ตามต้องการ</p>
+  <span class="tool-btn">ใช้งาน</span>
+</a>
+
+<a href="#pdf2img" class="tool-card">
+  <div class="tool-icon">📸</div>
+  <h3>แปลง PDF เป็นรูปภาพ</h3>
+  <p>แปลงหน้าเอกสาร PDF ให้เป็นไฟล์รูปภาพ JPG หรือ PNG คุณภาพสูง ดาวน์โหลดแยกหรือรวม ZIP ได้</p>
   <span class="tool-btn">ใช้งาน</span>
 </a>
       </div>
@@ -268,6 +276,67 @@
   </div>
 </section>
 
+<!-- ========================================== -->
+<!-- VIEW 5: เครื่องมือ แปลง PDF เป็นรูปภาพ (PDF to Image) -->
+<!-- ========================================== -->
+<section id="view-pdf2img" class="view-section hidden">
+  <div class="hero">
+    <h1>แปลง PDF เป็นรูปภาพ (JPG / PNG)</h1>
+    <p>เลือกไฟล์ PDF เพื่อแปลงหน้าเอกสารทั้งหมดเป็นรูปภาพความละเอียดสูง</p>
+  </div>
+
+  <div class="card">
+    <input id="pdf2imgFileInput" type="file" accept="application/pdf,.pdf" hidden>
+    <div class="drop" id="pdf2imgDropArea">
+      <div class="icon">📸</div>
+      <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
+      <span>หรือ</span>
+      <span class="btn-choose">เลือกไฟล์ PDF (1 ไฟล์)</span>
+    </div>
+
+    <!-- โซนตั้งค่าและแสดงพรีวิวรูปภาพ -->
+    <div id="pdf2imgWorkspace" class="workspace hidden">
+      <div class="workspace-toolbar">
+        <div class="file-info">
+          <span id="pdf2imgFileName" class="fname-title">filename.pdf</span>
+          <span id="pdf2imgPageCount" class="page-count-badge">0 หน้า</span>
+        </div>
+        <div class="global-actions">
+          <button type="button" id="pdf2imgCancelBtn" class="secondary-sm">เลือกไฟล์ใหม่</button>
+        </div>
+      </div>
+
+      <!-- แถบตั้งค่าฟอร์แมตและคุณภาพ -->
+      <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px; padding:16px; background:#f1f5f9; border-radius:10px;">
+        <div style="flex:1; min-width:180px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">ฟอร์แมตรูปภาพ:</label>
+          <select id="pdf2imgFormat" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1;">
+            <option value="image/jpeg" selected>JPG (ไฟล์ขนาดเล็ก โหลดไว)</option>
+            <option value="image/png">PNG (คมชัดสูง พื้นหลังใส)</option>
+          </select>
+        </div>
+        <div style="flex:1; min-width:180px;">
+          <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">ความคมชัด (DPI Scale):</label>
+          <select id="pdf2imgScale" style="width:100%; padding:8px 12px; border-radius:8px; border:1px solid #cbd5e1;">
+            <option value="1.5">ปกติ (Standard Quality)</option>
+            <option value="2.0" selected>ชัดเจน (High Quality - แนะนำ)</option>
+            <option value="3.0">คมชัดมาก (Ultra High Quality)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ตารางแสดง Preview รูปภาพที่เรนเดอร์แล้ว -->
+      <div id="pdf2imgGrid" class="page-grid" style="min-height:150px; padding:12px; border:1px solid #e2e8f0; border-radius:12px; background:#f8fafc; margin-bottom:20px;"></div>
+
+      <div class="actions">
+        <button id="pdf2imgDownloadAllBtn" class="primary" disabled>ดาวน์โหลดทั้งหมด (ไฟล์ ZIP)</button>
+      </div>
+    </div>
+
+    <div id="pdf2imgStatus" class="status"></div>
+  </div>
+</section>
+
     <!-- Ad Banner Bottom (แสดงก่อน Section ความปลอดภัย) -->
     <div class="ad-container ad-bottom">
       <!-- วางโค้ด <ins class="adsbygoogle"> จาก Google AdSense ที่นี่ -->
@@ -296,12 +365,14 @@
   <!-- External Libraries -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script> <!-- << เพิ่มไลบรารีนี้ -->
 
   <!-- App Scripts -->
   <script src="tools/merge.js"></script>
   <script src="tools/rotate.js"></script>
   <script src="tools/split.js"></script>
-  <script src="tools/img2pdf.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
+  <script src="tools/img2pdf.js"></script>
+  <script src="tools/pdf2img.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
   <script src="app.js"></script>
 </body>
 </html>

@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function handleRoute() {
   const rawHash = window.location.hash.replace("#", "").trim();
-  const validTools = ["hub", "merge", "rotate", "split", "img2pdf"]; // << เพิ่ม "img2pdf"
+  const validTools = ["hub", "merge", "rotate", "split", "img2pdf", "pdf2img"]; // << เพิ่ม "pdf2img"
   
   const hash = validTools.includes(rawHash) ? rawHash : "hub";
 
@@ -35,7 +35,8 @@ function handleRoute() {
   if (hash === "merge" && typeof window.initMergeTool === "function") window.initMergeTool();
   if (hash === "rotate" && typeof window.initRotateTool === "function") window.initRotateTool();
   if (hash === "split" && typeof window.initSplitTool === "function") window.initSplitTool();
-  if (hash === "img2pdf" && typeof window.initImg2PdfTool === "function") window.initImg2PdfTool(); // << เพิ่มบรรทัดนี้
+  if (hash === "img2pdf" && typeof window.initImg2PdfTool === "function") window.initImg2PdfTool();
+  if (hash === "pdf2img" && typeof window.initPdf2ImgTool === "function") window.initPdf2ImgTool(); // << เพิ่มบรรทัดนี้
 }
 
 /**
