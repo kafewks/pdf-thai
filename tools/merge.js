@@ -1,4 +1,4 @@
-// tools/merge.js - PDF Merge Engine with Reorder & Page Preview
+// tools/merge.js - PDF Merge Engine with Reorder & Scrollable Page Preview
 (function () {
   let selectedFiles = [];
   let dragSrcIndex = null;
@@ -79,29 +79,37 @@
       submitBtn.disabled = false;
       fileList.innerHTML = "";
 
-      // แสดงคำแนะนำการสลับลำดับ
       const hint = document.createElement("p");
       hint.style.cssText = "font-size: 13px; color: #64748b; margin-bottom: 12px;";
-      hint.textContent = "💡 ทิป: คุณสามารถคลิกค้างแล้วลากการ์ดเพื่อจัดเรียงลำดับไฟล์ก่อนรวมได้";
+      hint.textContent = "💡 ทิป: คุณสามารถจับบริเวณแถบหัวข้อเพื่อลากสลับลำดับไฟล์ และเลื่อนแถบรอบๆ เพื่อดูหน้าพรีวิวได้";
       fileList.appendChild(hint);
 
-      // สร้าง Item รายการไฟล์แบบลากสลับลำดับได้ (Draggable)
       for (let index = 0; index < selectedFiles.length; index++) {
         const file = selectedFiles[index];
         const item = document.createElement("div");
         item.className = "merge-item";
-        item.draggable = true;
-        item.dataset.index = index;
-        item.style.cssText = "background: #fff; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; margin-bottom: 12px; cursor: grab; transition: background 0.2s, border-color 0.2s;";
+        item.style.cssText = "background: #fff; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 12px; margin-bottom: 12px; transition: background 0.2s, border-color 0.2s;";
 
-        // Event สำหรับ Drag and Drop จัดลำดับไฟล์
-        item.addEventListener("dragstart", (e) => {
+        // สร้าง Header Bar สำหรับใช้ลากสลับลำดับไฟล์โดยเฉพาะ (Drag Handle)
+        const itemHeader = document.createElement("div");
+        itemHeader.draggable = true;
+        itemHeader.dataset.index = index;
+        itemHeader.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; cursor: grab; padding: 4px; background: #f1f5f9; border-radius: 6px;";
+        itemHeader.innerHTML = `
+          <div style="font-weight: 600; color: #1e293b;">
+            ⋮⋮ 📄 ${index + 1}. ${file.name}
+            <span id="pageCount_${index}" style="font-size: 12px; color: #64748b; margin-left: 8px;">(กำลังโหลด...)</span>
+          </div>
+        `;
+
+        // Events สำหรับลากจัดลำดับตรง Header
+        itemHeader.addEventListener("dragstart", (e) => {
           dragSrcIndex = index;
           e.dataTransfer.effectAllowed = "move";
           item.style.opacity = "0.5";
         });
 
-        item.addEventListener("dragend", () => {
+        itemHeader.addEventListener("dragend", () => {
           item.style.opacity = "1";
           document.querySelectorAll(".merge-item").forEach((el) => {
             el.style.borderColor = "#cbd5e1";
@@ -124,23 +132,12 @@
         item.addEventListener("drop", (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const targetIndex = parseInt(item.dataset.index, 10);
-          if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
-            // สลับตำแหน่งไฟล์ใน Array
+          if (dragSrcIndex !== null && dragSrcIndex !== index) {
             const movedItem = selectedFiles.splice(dragSrcIndex, 1)[0];
-            selectedFiles.splice(targetIndex, 0, movedItem);
+            selectedFiles.splice(index, 0, movedItem);
             renderList();
           }
         });
-
-        const itemHeader = document.createElement("div");
-        itemHeader.style.cssText = "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;";
-        itemHeader.innerHTML = `
-          <div style="font-weight: 600; color: #1e293b; pointer-events: none;">
-            ⋮⋮ 📄 ${index + 1}. ${file.name}
-            <span id="pageCount_${index}" style="font-size: 12px; color: #64748b; margin-left: 8px;">(กำลังโหลด...)</span>
-          </div>
-        `;
 
         const removeBtn = document.createElement("button");
         removeBtn.textContent = "✕ ลบ";
@@ -155,16 +152,15 @@
         itemHeader.appendChild(removeBtn);
         item.appendChild(itemHeader);
 
-        // คอนเทนเนอร์แสดง Grid ตัวอย่างหน้ากระดาษ
+        // คอนเทนเนอร์แสดง Grid ตัวอย่างหน้ากระดาษ (เปิดให้ Scroll เลื่อนปัดซ้าย-ขวาได้สะดวก)
         const pageGrid = document.createElement("div");
         pageGrid.className = "merge-page-grid";
-        pageGrid.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 8px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; min-height: 80px; align-items: center; pointer-events: none;";
+        pageGrid.style.cssText = "display: flex; gap: 8px; overflow-x: auto; padding: 8px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; min-height: 90px; align-items: center; scrollbar-width: thin;";
         pageGrid.innerHTML = '<span style="font-size: 12px; color: #94a3b8;">กำลังโหลดตัวอย่าง...</span>';
 
         item.appendChild(pageGrid);
         fileList.appendChild(item);
 
-        // โหลดข้อมูลและแสดง Thumbnail
         loadAndRenderPreviews(file, index, pageGrid);
       }
     }
