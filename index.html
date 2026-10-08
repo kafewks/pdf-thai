@@ -30,8 +30,9 @@
   <a href="#split" class="nav-link" data-tool="split">แยก PDF</a>
   <a href="#img2pdf" class="nav-link" data-tool="img2pdf">แปลงรูปเป็น PDF</a>
   <a href="#pdf2img" class="nav-link" data-tool="pdf2img">แปลง PDF เป็นรูป</a>
-  <a href="#protect" class="nav-link" data-tool="protect">ตั้งรหัสผ่าน PDF</a> 
-  <a href="#edit" class="nav-link" data-tool="edit">แก้ไข PDF</a> <!-- << เพิ่มบรรทัดนี้ -->
+  <a href="#protect" class="nav-link" data-tool="protect">ตั้งรหัสผ่าน PDF</a>
+  <a href="#edit" class="nav-link" data-tool="edit">แก้ไข PDF</a>
+  <a href="#watermark" class="nav-link" data-tool="watermark">ใส่ลายน้ำ</a> <!-- << เพิ่มบรรทัดนี้ -->
 </nav>
 
     <div class="badge">🔒 ประมวลผลในเครื่อง</div>
@@ -100,6 +101,13 @@
   <div class="tool-icon">✏️</div>
   <h3>แก้ไข PDF</h3>
   <p>เพิ่มข้อความ ลบข้อความเดิม ไฮไลต์ หรือประทับลายเซ็นลงบน PDF</p>
+  <span class="tool-btn">ใช้งาน</span>
+</a>
+
+<a href="#watermark" class="tool-card" data-tool="watermark">
+  <div class="tool-icon">💧</div>
+  <h3>ใส่ลายน้ำ PDF</h3>
+  <p>ประทับตราข้อความหรือโลโก้ลายน้ำ ปรับความโปร่งใส และองศาการหมุนได้ตามต้องการ</p>
   <span class="tool-btn">ใช้งาน</span>
 </a>
       </div>
@@ -549,6 +557,95 @@
   </div>
 </section>
 
+<!-- ========================================== -->
+<!-- VIEW 8: เครื่องมือ ใส่ลายน้ำ PDF (Watermark PDF) -->
+<!-- ========================================== -->
+<section id="view-watermark" class="view-section hidden">
+  <div class="hero">
+    <h1>ใส่ลายน้ำ PDF (Watermark)</h1>
+    <p>เพิ่มข้อความหรือรูปภาพลายน้ำลงบนเอกสาร PDF พร้อมพรีวิวตัวอย่างสดๆ ก่อนดาวน์โหลด</p>
+  </div>
+
+  <div class="card">
+    <input id="watermarkFileInput" type="file" accept="application/pdf,.pdf" hidden>
+    <div class="drop" id="watermarkDropArea">
+      <div class="icon">💧</div>
+      <strong>ลากไฟล์ PDF มาวางที่นี่</strong>
+      <span>หรือ</span>
+      <span class="btn-choose">เลือกไฟล์ PDF (1 ไฟล์)</span>
+    </div>
+
+    <div id="watermarkWorkspace" class="workspace hidden">
+      <div class="workspace-toolbar">
+        <div class="file-info">
+          <span id="watermarkFileName" class="fname-title">filename.pdf</span>
+          <span id="watermarkPageCount" class="page-count-badge">0 หน้า</span>
+        </div>
+        <div class="global-actions">
+          <button type="button" id="watermarkCancelBtn" class="secondary-sm">เลือกไฟล์ใหม่</button>
+        </div>
+      </div>
+
+      <!-- แถบตั้งค่าลายน้ำ -->
+      <div style="display:flex; flex-direction:column; gap:16px; margin:20px 0; padding:16px; background:#f8fafc; border-radius:12px; border:1px solid #e2e8f0;">
+        
+        <!-- ประเภทลายน้ำ -->
+        <div style="display:flex; gap:16px; align-items:center;">
+          <span style="font-weight:600; font-size:13px;">ประเภทลายน้ำ:</span>
+          <label style="cursor:pointer; font-size:13px;"><input type="radio" name="wmType" value="text" checked> ลายน้ำข้อความ (Text)</label>
+          <label style="cursor:pointer; font-size:13px;"><input type="radio" name="wmType" value="image"> ลายน้ำรูปภาพ/โลโก้ (Image)</label>
+        </div>
+
+        <!-- ตัวเลือกข้อความ -->
+        <div id="wmTextOptions" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+          <input type="text" id="wmTextInput" value="สำเนาถูกต้อง" placeholder="พิมพ์ข้อความลายน้ำ..." style="flex:1; min-width:180px; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px;">
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">ขนาด:
+            <input type="number" id="wmFontSize" value="48" min="12" max="150" style="width:60px; padding:6px; border:1px solid #cbd5e1; border-radius:6px;">
+          </label>
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:4px;">สี:
+            <input type="color" id="wmTextColor" value="#dc2626" style="width:32px; height:32px; border:none; cursor:pointer;">
+          </label>
+        </div>
+
+        <!-- ตัวเลือกลายน้ำรูปภาพ -->
+        <div id="wmImageOptions" class="hidden" style="display:flex; gap:12px; align-items:center;">
+          <input type="file" id="wmImageFileInput" accept="image/png,image/jpeg" hidden>
+          <button type="button" id="wmChooseImgBtn" class="secondary-sm">📷 เลือกรูปภาพโลโก้ (PNG/JPG)</button>
+          <span id="wmImgName" style="font-size:12px; color:#64748b;">ยังไม่ได้เลือกรูปภาพ</span>
+        </div>
+
+        <!-- ตัวเลือกปรับแต่งร่วม (องศาการหมุน & ความโปร่งใส) -->
+        <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:center; background:#fff; padding:12px; border-radius:8px; border:1px solid #cbd5e1;">
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
+            ความโปร่งใส (Opacity): 
+            <input type="range" id="wmOpacity" min="0.1" max="1" step="0.05" value="0.3" style="width:100px;">
+            <span id="wmOpacityVal">30%</span>
+          </label>
+
+          <label style="font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
+            องศาการหมุน (Rotation): 
+            <input type="range" id="wmRotation" min="-180" max="180" step="5" value="-45" style="width:100px;">
+            <span id="wmRotationVal">-45°</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- คอนเทนเนอร์แสดง พรีวิว PDF สด -->
+      <div style="display:flex; justify-content:center; margin-bottom:20px;">
+        <div id="wmPreviewContainer" style="position:relative; border:1px solid #cbd5e1; box-shadow:0 4px 10px rgba(0,0,0,0.1); background:#fff; display:inline-block;">
+          <canvas id="wmCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="wmSubmitBtn" class="primary">ประทับลายน้ำและดาวน์โหลด PDF</button>
+      </div>
+    </div>
+
+    <div id="wmStatus" class="status"></div>
+  </div>
+</section>
+
     <!-- Ad Banner Bottom (แสดงก่อน Section ความปลอดภัย) -->
     <div class="ad-container ad-bottom">
       <!-- วางโค้ด <ins class="adsbygoogle"> จาก Google AdSense ที่นี่ -->
@@ -586,10 +683,9 @@
   <script src="tools/split.js"></script>
   <script src="tools/img2pdf.js"></script>
   <script src="tools/pdf2img.js"></script>
-  <script src="tools/protect.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
+  <script src="tools/protect.js"></script>
   <script src="tools/edit.js"></script>
+  <script src="tools/watermark.js"></script> <!-- << เพิ่มบรรทัดนี้ -->
   <script src="app.js"></script>
-
-
 </body>
 </html>

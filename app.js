@@ -29,29 +29,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function handleRoute() {
   const rawHash = window.location.hash.replace("#", "").trim();
-  
-  // รายการ tools ทั้งหมดที่อนุญาต
-  const validTools = ["hub", "merge", "rotate", "split", "img2pdf", "pdf2img", "protect", "edit"];
+  const validTools = ["hub", "merge", "rotate", "split", "img2pdf", "pdf2img", "protect", "edit", "watermark"]; // << เพิ่ม "watermark"
   
   const hash = validTools.includes(rawHash) ? rawHash : "hub";
 
-  // ซ่อนทุก view section ก่อน
   document.querySelectorAll(".view-section").forEach(el => el.classList.add("hidden"));
 
-  // อัปเดตสถานะ active บนแถบเมนู Navigation
   document.querySelectorAll(".nav-link").forEach(link => {
     const linkTool = link.dataset.tool || link.getAttribute("href")?.replace("#", "");
     link.classList.toggle("active", linkTool === hash || (hash === "hub" && linkTool === ""));
   });
 
-  // แสดงหน้า View ที่เลือก
   const targetView = document.getElementById(`view-${hash}`) || document.getElementById("view-hub");
   if (targetView) {
     targetView.classList.remove("hidden");
   }
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // เรียกใช้งานฟังก์ชันเริ่มต้นของแต่ละเครื่องมือ
+  // Initialize Tools
   if (hash === "merge" && typeof window.initMergeTool === "function") window.initMergeTool();
   if (hash === "rotate" && typeof window.initRotateTool === "function") window.initRotateTool();
   if (hash === "split" && typeof window.initSplitTool === "function") window.initSplitTool();
@@ -59,6 +54,7 @@ function handleRoute() {
   if (hash === "pdf2img" && typeof window.initPdf2ImgTool === "function") window.initPdf2ImgTool();
   if (hash === "protect" && typeof window.initProtectTool === "function") window.initProtectTool();
   if (hash === "edit" && typeof window.initEditTool === "function") window.initEditTool();
+  if (hash === "watermark" && typeof window.initWatermarkTool === "function") window.initWatermarkTool(); // << เพิ่มบรรทัดนี้
 }
 
 // ผูก Event Listener สำหรับ Hash Change
